@@ -1,0 +1,384 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--header-bg);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-trans);
+  height: 80px;
+  display: flex;
+  align-items: center;
+  transition: var(--transition-smooth);
+}
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.logo {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.logoIcon {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 900;
+}
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.navLink {
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 500;
+  transition: var(--transition-smooth);
+  position: relative;
+  padding: 8px 0;
+}
+.navLink:hover {
+  color: var(--text-primary);
+}
+.navLinkActive {
+  color: var(--primary);
+  font-weight: 600;
+}
+.searchForm {
+  flex: 1;
+  max-width: 400px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.searchInput {
+  width: 100%;
+  padding: 10px 16px 10px 42px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-trans);
+  border-radius: 30px;
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  transition: var(--transition-smooth);
+}
+.searchInput:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+  background-color: var(--bg-deep);
+}
+.searchIcon {
+  position: absolute;
+  left: 15px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.cartButton {
+  position: relative;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-smooth);
+}
+.cartButton:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-card);
+}
+.cartCount {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 10px var(--primary-glow);
+}
+/* Cart Dropdown */
+.cartDropdown {
+  position: absolute;
+  top: 70px;
+  right: 150px;
+  width: 320px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-trans);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 16px;
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cartItem {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-trans);
+}
+.cartItemThumbnail {
+  width: 50px;
+  height: 50px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+.cartItemDetails {
+  flex: 1;
+  min-width: 0;
+}
+.cartItemTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cartItemPrice {
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 700;
+  margin-top: 4px;
+}
+.removeCartItem {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: var(--transition-smooth);
+}
+.removeCartItem:hover {
+  color: #ff4d4d;
+  background-color: rgba(255, 77, 77, 0.1);
+}
+.cartTotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+.cartDropdownEmpty {
+  text-align: center;
+  padding: 24px 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+/* User Menu */
+.userMenuContainer {
+  position: relative;
+}
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  font-weight: 700;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 2px solid var(--border-trans);
+  transition: var(--transition-smooth);
+}
+.avatar:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 10px var(--primary-glow);
+}
+.userDropdown {
+  position: absolute;
+  top: 55px;
+  right: 0;
+  width: 220px;
+  background: var(--bg-surface); /* Solid theme background for perfect contrast in both modes */
+  border: 1px solid var(--border-trans);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15), 0 0 20px rgba(168, 85, 247, 0.05);
+  padding: 8px;
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  animation: dropdownFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: top right;
+}
+
+@keyframes dropdownFadeIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.userDropdownInfo {
+  padding: 12px;
+  border-bottom: 1px solid var(--border-trans);
+  margin-bottom: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+
+.userDropdownName {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  word-break: break-all;
+}
+
+/* Role Badges */
+.roleBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  font-size: 9px;
+  font-weight: 800;
+  border-radius: 99px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  width: fit-content;
+  margin-top: 2px;
+}
+
+.roleAdmin {
+  background-color: rgba(168, 85, 247, 0.12);
+  color: #a855f7;
+  border: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+.roleInstructor {
+  background-color: rgba(249, 115, 22, 0.12);
+  color: #f97316;
+  border: 1px solid rgba(249, 115, 22, 0.2);
+}
+
+.roleStudent {
+  background-color: rgba(6, 182, 212, 0.12);
+  color: #06b6d4;
+  border: 1px solid rgba(6, 182, 212, 0.2);
+}
+
+.userDropdownLink {
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: var(--transition-smooth);
+  cursor: pointer;
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  text-align: left;
+}
+
+.userDropdownLink svg {
+  color: var(--text-muted);
+  transition: var(--transition-smooth);
+}
+
+.userDropdownLink:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-input); /* Theme-aware hover background (works in both light/dark modes) */
+  border-left-color: var(--primary);
+  padding-left: 14px;
+}
+
+.userDropdownLink:hover svg {
+  color: var(--primary);
+  transform: scale(1.1);
+}
+
+/* Active Highlight Link */
+.activeDropdownLink {
+  color: var(--text-primary) !important;
+  background-color: var(--primary-glow) !important; /* Theme-aware active background */
+  border-left-color: var(--accent) !important;
+  padding-left: 14px;
+}
+
+.activeDropdownLink svg {
+  color: var(--accent) !important;
+}
+
+.signOutBtn {
+  color: #ff4d4d;
+}
+
+.signOutBtn:hover {
+  background-color: rgba(255, 77, 77, 0.08);
+  color: #ff4d4d;
+  border-left-color: #ff4d4d;
+}
+
+.signOutBtn:hover svg {
+  color: #ff4d4d;
+}
+
+.mobileMenuBtn {
+  display: none;
+}
+.themeToggle {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-smooth);
+}
+.themeToggle:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-card);
+}
+@media (max-width: 768px) {
+  .nav {
+    display: none;
+  }
+  .searchForm {
+    display: none;
+  }
+}

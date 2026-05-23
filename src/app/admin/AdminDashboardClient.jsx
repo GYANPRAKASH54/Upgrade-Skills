@@ -1,0 +1,1321 @@
+'use client';
+
+import { useState, Fragment } from 'react';
+import Link from 'next/link';
+import { 
+  Users, 
+  BookOpen, 
+  ShoppingCart, 
+  IndianRupee, 
+  Search, 
+  Trash2, 
+  PlusCircle, 
+  AlertCircle, 
+  CheckCircle2, 
+  LayoutDashboard,
+  ShieldCheck,
+  UserX,
+  UserCheck,
+  Book,
+  Plus,
+  MessageSquare,
+  Trophy,
+  Calendar
+} from 'lucide-react';
+import styles from './Admin.module.css';
+
+export default function AdminDashboardClient({ 
+  initialCourses, 
+  initialEnrollments, 
+  initialUsers, 
+  initialQuestions = [],
+  initialCompetitions = [],
+  stats 
+}) {
+  const [activeTab, setActiveTab] = useState('analytics');
+  const [enrollments, setEnrollments] = useState(initialEnrollments);
+  const [users, setUsers] = useState(initialUsers);
+  const [courses, setCourses] = useState(initialCourses);
+  const [questions, setQuestions] = useState(initialQuestions);
+  const [competitions, setCompetitions] = useState(initialCompetitions);
+  const [compSearch, setCompSearch] = useState('');
+
+  // New competition form state
+  const [compTitle, setCompTitle] = useState('');
+  const [compDescription, setCompDescription] = useState('');
+  const [compImage, setCompImage] = useState('');
+  const [compRules, setCompRules] = useState('');
+  const [compStartDate, setCompStartDate] = useState('');
+  const [compEndDate, setCompEndDate] = useState('');
+  const [compStatus, setCompStatus] = useState('REGISTRATIONS_OPEN');
+  const [createCompLoading, setCreateCompLoading] = useState(false);
+  
+  // Search state variables
+  const [userSearch, setUserSearch] = useState('');
+  const [courseSearch, setCourseSearch] = useState('');
+  const [accessSearch, setAccessSearch] = useState('');
+  const [qaSearch, setQaSearch] = useState('');
+  const [expandedEnrollment, setExpandedEnrollment] = useState(null);
+
+  const toggleEnrollmentDetails = (id) => {
+    setExpandedEnrollment(expandedEnrollment === id ? null : id);
+  };
+  
+  // Manual enrollment form state
+  const [selectedStudent, setSelectedStudent] = useState('');
+  const [selectedCourse, setSelectedCourse] = useState('');
+  const [submitLoading, setSubmitLoading] = useState(false);
+
+  // New course creation form state
+  const [courseTitle, setCourseTitle] = useState('');
+  const [courseSubtitle, setCourseSubtitle] = useState('');
+  const [courseDescription, setCourseDescription] = useState('');
+  const [coursePrice, setCoursePrice] = useState('');
+  const [courseThumbnail, setCourseThumbnail] = useState('');
+  const [courseInstructor, setCourseInstructor] = useState('');
+  const [createCourseLoading, setCreateCourseLoading] = useState(false);
+
+  // General notification message
+  const [message, setMessage] = useState({ type: '', text: '' });
+
+  // Filtered lists
+  const filteredUsers = users.filter((u) => {
+    const query = userSearch.toLowerCase();
+    return u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query);
+  });
+
+  const filteredCourses = courses.filter((c) => {
+    const query = courseSearch.toLowerCase();
+    const instructorName = c.instructor?.name || '';
+    return c.title.toLowerCase().includes(query) || instructorName.toLowerCase().includes(query);
+  });
+
+  const filteredEnrollments = enrollments.filter((enrollment) => {
+    const studentName = enrollment.student?.name || '';
+    const studentEmail = enrollment.student?.email || '';
+    const courseTitle = enrollment.course?.title || '';
+    const query = accessSearch.toLowerCase();
+    
+    return (
+      studentName.toLowerCase().includes(query) ||
+      studentEmail.toLowerCase().includes(query) ||
+      courseTitle.toLowerCase().includes(query)
+    );
+  });
+
+  const filteredQuestions = questions.filter((q) => {
+    const query = qaSearch.toLowerCase();
+    const studentName = q.student?.name || '';
+    const studentEmail = q.student?.email || '';
+    const lectureTitle = q.lecture?.title || '';
+    const courseTitle = q.lecture?.section?.course?.title || '';
+    const content = q.content || '';
+    
+    return (
+      studentName.toLowerCase().includes(query) ||
+      studentEmail.toLowerCase().includes(query) ||
+      lectureTitle.toLowerCase().includes(query) ||
+      courseTitle.toLowerCase().includes(query) ||
+      content.toLowerCase().includes(query)
+    );
+  });
+
+  const filteredCompetitions = competitions.filter((comp) => {
+    const query = compSearch.toLowerCase();
+    return comp.title.toLowerCase().includes(query) || comp.description.toLowerCase().includes(query);
+  });
+
+  // Filtered lists for manual enroll selectors
+  const studentsList = users.filter((u) => u.role === 'STUDENT');
+  const instructorsList = users.filter((u) => u.role === 'INSTRUCTOR' || u.role === 'ADMIN');
+
+  // Handle User Role Change
+  const handleRoleChange = async (userId, newRole, userName) => {
+    setMessage({ type: '', text: '' });
+
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, role: newRole }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage({ type: 'error', text: data.error || 'Failed to update user role.' });
+      } else {
+        setMessage({ type: 'success', text: `Successfully updated ${userName}'s role to ${newRole}!` });
+        setUsers(users.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage({ type: 'error', text: 'An unexpected error occurred while changing user role.' });
+    }
+  };
+
+  // Handle User Account Deletion
+  const handleDeleteUser = async (userId, userName) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to permanently delete the account of ${userName}? This will cascade delete all their course enrollments and is IRREVERSIBLE.`
+    );
+    if (!confirmed) return;
+
+    setMessage({ type: '', text: '' });
+
+    try {
+      const res = await fetch(`/api/admin/users?id=${userId}`, {
+        method: 'DELETE',
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage({ type: 'error', text: data.error || 'Failed to delete user account.' });
+      } else {
+        setMessage({ type: 'success', text: `Successfully deleted account of ${userName}.` });
+        setUsers(users.filter((u) => u.id !== userId));
+        setEnrollments(enrollments.filter((e) => e.studentId !== userId));
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage({ type: 'error', text: 'An unexpected error occurred while deleting user.' });
+    }
+  };
+
+  // Handle Create Course listing
+  const handleCreateCourse = async (e) => {
+    e.preventDefault();
+    if (!courseTitle || !courseInstructor) {
+      setMessage({ type: 'error', text: 'Please provide a Course Title and select an Instructor.' });
+      return;
+    }
+
+    setCreateCourseLoading(true);
+    setMessage({ type: '', text: '' });
+
+    try {
+      const res = await fetch('/api/admin/courses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: courseTitle,
+          subtitle: courseSubtitle,
+          description: courseDescription,
+          price: parseFloat(coursePrice) || 0,
+          thumbnail: courseThumbnail || '/placeholder-course.jpg',
+          instructorId: courseInstructor,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage({ type: 'error', text: data.error || 'Failed to create course.' });
+      } else {
+        setMessage({ type: 'success', text: `Course "${courseTitle}" created successfully!` });
+        setCourses([...courses, data.course]);
+        // Reset form
+        setCourseTitle('');
+        setCourseSubtitle('');
+        setCourseDescription('');
+        setCoursePrice('');
+        setCourseThumbnail('');
+        setCourseInstructor('');
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage({ type: 'error', text: 'An unexpected error occurred while creating the course.' });
+    } finally {
+      setCreateCourseLoading(false);
+    }
+  };
+
+  // Handle Course Deletion
+  const handleDeleteCourse = async (courseId, courseTitle) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to permanently delete course "${courseTitle}"? This will cascade-delete all sections, lectures, student progress, and active enrollments for this course. This is IRREVERSIBLE.`
+    );
+    if (!confirmed) return;
+
+    setMessage({ type: '', text: '' });
+
+    try {
+      const res = await fetch(`/api/admin/courses?id=${courseId}`, {
+        method: 'DELETE',
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage({ type: 'error', text: data.error || 'Failed to delete course.' });
+      } else {
+        setMessage({ type: 'success', text: `Successfully deleted course "${courseTitle}".` });
+        setCourses(courses.filter((c) => c.id !== courseId));
+        setEnrollments(enrollments.filter((e) => e.courseId !== courseId));
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage({ type: 'error', text: 'An unexpected error occurred while deleting the course.' });
+    }
+  };
+
+  // Handle manual enrollment creation
+  const handleManualEnroll = async (e) => {
+    e.preventDefault();
+    if (!selectedStudent || !selectedCourse) {
+      setMessage({ type: 'error', text: 'Please select both a student and a course.' });
+      return;
+    }
+
+    setSubmitLoading(true);
+    setMessage({ type: '', text: '' });
+
+    try {
+      const res = await fetch('/api/admin/enrollments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId: selectedStudent, courseId: selectedCourse }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage({ type: 'error', text: data.error || 'Failed to grant manual access.' });
+      } else {
+        setMessage({ type: 'success', text: 'Course access granted successfully!' });
+        setEnrollments([data.enrollment, ...enrollments]);
+        setSelectedStudent('');
+        setSelectedCourse('');
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage({ type: 'error', text: 'An unexpected error occurred. Please try again.' });
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  // Handle manual enrollment deletion (revoke access)
+  const handleRevokeAccess = async (enrollmentId, studentName, courseTitle) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to revoke manual access for ${studentName} in "${courseTitle}"?`
+    );
+    if (!confirmed) return;
+
+    setMessage({ type: '', text: '' });
+
+    try {
+      const res = await fetch(`/api/admin/enrollments?id=${enrollmentId}`, {
+        method: 'DELETE',
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage({ type: 'error', text: data.error || 'Failed to revoke course access.' });
+      } else {
+        setMessage({ type: 'success', text: 'Course access revoked successfully!' });
+        setEnrollments(enrollments.filter((item) => item.id !== enrollmentId));
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage({ type: 'error', text: 'An unexpected error occurred while revoking access.' });
+    }
+  };
+
+  // Handle Student Q&A Question Deletion
+  const handleDeleteQuestion = async (questionId, questionSnippet) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete this question? "${questionSnippet}"\nThis action cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setMessage({ type: '', text: '' });
+
+    try {
+      const res = await fetch(`/api/admin/questions?id=${questionId}`, {
+        method: 'DELETE',
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage({ type: 'error', text: data.error || 'Failed to delete question.' });
+      } else {
+        setMessage({ type: 'success', text: 'Successfully deleted question!' });
+        setQuestions(questions.filter((q) => q.id !== questionId));
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage({ type: 'error', text: 'An unexpected error occurred while deleting the question.' });
+    }
+  };
+
+  // Handle Create Competition
+  const handleCreateCompetition = async (e) => {
+    e.preventDefault();
+    if (!compTitle || !compStartDate || !compEndDate) {
+      setMessage({ type: 'error', text: 'Please provide an Event Title, Start Date, and End Date.' });
+      return;
+    }
+
+    setCreateCompLoading(true);
+    setMessage({ type: '', text: '' });
+
+    try {
+      const res = await fetch('/api/admin/competitions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: compTitle,
+          description: compDescription,
+          image: compImage,
+          rules: compRules,
+          startDate: compStartDate,
+          endDate: compEndDate,
+          status: compStatus,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage({ type: 'error', text: data.error || 'Failed to create competition.' });
+      } else {
+        setMessage({ type: 'success', text: `Event "${compTitle}" created successfully!` });
+        setCompetitions([...competitions, data.competition]);
+        // Reset form
+        setCompTitle('');
+        setCompDescription('');
+        setCompImage('');
+        setCompRules('');
+        setCompStartDate('');
+        setCompEndDate('');
+        setCompStatus('REGISTRATIONS_OPEN');
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage({ type: 'error', text: 'An unexpected error occurred while creating the competition.' });
+    } finally {
+      setCreateCompLoading(false);
+    }
+  };
+
+  // Handle Delete Competition
+  const handleDeleteCompetition = async (compId, compTitle) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to permanently delete event "${compTitle}"? This will cascade-delete all student submissions and certificates for this event. This is IRREVERSIBLE.`
+    );
+    if (!confirmed) return;
+
+    setMessage({ type: '', text: '' });
+
+    try {
+      const res = await fetch(`/api/admin/competitions?id=${compId}`, {
+        method: 'DELETE',
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage({ type: 'error', text: data.error || 'Failed to delete event.' });
+      } else {
+        setMessage({ type: 'success', text: `Successfully deleted event "${compTitle}".` });
+        setCompetitions(competitions.filter((c) => c.id !== compId));
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage({ type: 'error', text: 'An unexpected error occurred while deleting the event.' });
+    }
+  };
+
+  // Handle Competition Status Change
+  const handleCompStatusChange = async (compId, newStatus, compTitle) => {
+    setMessage({ type: '', text: '' });
+
+    try {
+      const res = await fetch('/api/admin/competitions', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: compId, status: newStatus }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage({ type: 'error', text: data.error || 'Failed to update event status.' });
+      } else {
+        const statusLabel = newStatus === 'REGISTRATIONS_OPEN' ? 'Registrations Open' : newStatus === 'REGISTRATIONS_CLOSED' ? 'Registrations Closed' : 'Result Out';
+        setMessage({ type: 'success', text: `Successfully updated "${compTitle}" status to ${statusLabel}!` });
+        setCompetitions(competitions.map((c) => (c.id === compId ? { ...c, status: newStatus } : c)));
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage({ type: 'error', text: 'An unexpected error occurred while changing event status.' });
+    }
+  };
+
+  // Calculate live stats summary metrics
+  const liveTotalRevenue = courses.reduce((acc, course) => {
+    const purchaseCount = enrollments.filter((e) => e.courseId === course.id).length;
+    return acc + (purchaseCount * course.price);
+  }, 0);
+
+  return (
+    <div style={{ paddingBottom: '100px' }}>
+      {/* 1. Quick Stats Grid */}
+      <div className={styles.statsGrid}>
+        <div className={`${styles.statCard} glass-card`}>
+          <div className={styles.statIcon}>
+            <Users size={24} />
+          </div>
+          <div>
+            <div className={styles.statValue}>{users.length}</div>
+            <div className={styles.statLabel}>Total Users</div>
+          </div>
+        </div>
+
+        <div className={`${styles.statCard} glass-card`}>
+          <div className={styles.statIconAccent}>
+            <BookOpen size={24} />
+          </div>
+          <div>
+            <div className={styles.statValue}>{courses.length}</div>
+            <div className={styles.statLabel}>Total Courses</div>
+          </div>
+        </div>
+
+        <div className={`${styles.statCard} glass-card`}>
+          <div className={styles.statIcon}>
+            <ShoppingCart size={24} style={{ color: 'var(--primary)' }} />
+          </div>
+          <div>
+            <div className={styles.statValue}>{enrollments.length}</div>
+            <div className={styles.statLabel}>Total Purchases</div>
+          </div>
+        </div>
+
+        <div className={`${styles.statCard} glass-card`}>
+          <div className={styles.statIconRevenue}>
+            <IndianRupee size={24} />
+          </div>
+          <div>
+            <div className={styles.statValue}>₹{liveTotalRevenue.toLocaleString()}</div>
+            <div className={styles.statLabel}>Estimated Revenue</div>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Tabs Navigation */}
+      <div className={styles.tabsContainer}>
+        <button 
+          onClick={() => { setActiveTab('analytics'); setMessage({ type: '', text: '' }); }}
+          className={`${styles.tabBtn} ${activeTab === 'analytics' ? styles.activeTabBtn : ''}`}
+        >
+          <LayoutDashboard size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+          Overview
+        </button>
+        <button 
+          onClick={() => { setActiveTab('users'); setMessage({ type: '', text: '' }); }}
+          className={`${styles.tabBtn} ${activeTab === 'users' ? styles.activeTabBtn : ''}`}
+        >
+          <UserCheck size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+          Manage Users
+        </button>
+        <button 
+          onClick={() => { setActiveTab('courses'); setMessage({ type: '', text: '' }); }}
+          className={`${styles.tabBtn} ${activeTab === 'courses' ? styles.activeTabBtn : ''}`}
+        >
+          <Book size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+          Manage Courses
+        </button>
+        <button 
+          onClick={() => { setActiveTab('access'); setMessage({ type: '', text: '' }); }}
+          className={`${styles.tabBtn} ${activeTab === 'access' ? styles.activeTabBtn : ''}`}
+        >
+          <ShieldCheck size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+          Access Control
+        </button>
+        <button 
+          onClick={() => { setActiveTab('qa'); setMessage({ type: '', text: '' }); }}
+          className={`${styles.tabBtn} ${activeTab === 'qa' ? styles.activeTabBtn : ''}`}
+        >
+          <MessageSquare size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+          Student Q&A
+        </button>
+        <button 
+          onClick={() => { setActiveTab('competitions'); setMessage({ type: '', text: '' }); }}
+          className={`${styles.tabBtn} ${activeTab === 'competitions' ? styles.activeTabBtn : ''}`}
+        >
+          <Trophy size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+          InnoTech Events
+        </button>
+      </div>
+
+      {/* 3. Messages */}
+      {message.text && (
+        <div className={`${styles.alert} ${message.type === 'success' ? styles.alertSuccess : styles.alertError}`}>
+          {message.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+          <span>{message.text}</span>
+        </div>
+      )}
+
+      {/* 4. Tab Contents */}
+      <div className={styles.tabContent}>
+        
+        {/* Tab 1: Analytics / Overview */}
+        {activeTab === 'analytics' && (
+          <div className={`${styles.tableCard} glass-card`}>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '20px' }}>Course Performance & Revenue</h3>
+            <table className={styles.adminTable}>
+              <thead>
+                <tr>
+                  <th className={styles.th}>Course Title</th>
+                  <th className={styles.th}>Instructor</th>
+                  <th className={styles.th}>Price</th>
+                  <th className={styles.th}>Purchases (Users)</th>
+                  <th className={styles.th}>Revenue Generated</th>
+                </tr>
+              </thead>
+              <tbody>
+                {courses.map((course) => {
+                  const enrollmentsCount = enrollments.filter((e) => e.courseId === course.id).length;
+                  const courseRevenue = enrollmentsCount * course.price;
+                  return (
+                    <tr key={course.id} className={styles.tr}>
+                      <td className={`${styles.td} ${styles.tdHighlight}`}>{course.title}</td>
+                      <td className={styles.td}>{course.instructor?.name || 'N/A'}</td>
+                      <td className={styles.td}>₹{course.price}</td>
+                      <td className={styles.td} style={{ fontWeight: '700', color: 'var(--primary)' }}>
+                        {enrollmentsCount}
+                      </td>
+                      <td className={styles.td} style={{ fontWeight: '700', color: '#4ade80' }}>
+                        ₹{courseRevenue.toLocaleString()}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Tab 2: User Accounts Directory */}
+        {activeTab === 'users' && (
+          <div className={`${styles.tableCard} glass-card`}>
+            <div className={styles.searchHeader}>
+              <h3 style={{ fontSize: '18px', fontWeight: '700' }}>Site Users Database</h3>
+              <div className={styles.searchInputWrapper}>
+                <Search size={16} className={styles.searchIcon} />
+                <input
+                  type="text"
+                  placeholder="Search users by name or email..."
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  className="form-input"
+                  style={{ paddingLeft: '42px', fontSize: '13px' }}
+                />
+              </div>
+            </div>
+
+            {filteredUsers.length === 0 ? (
+              <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                No user accounts match your search.
+              </div>
+            ) : (
+              <table className={styles.adminTable}>
+                <thead>
+                  <tr>
+                    <th className={styles.th}>User ID</th>
+                    <th className={styles.th}>Name</th>
+                    <th className={styles.th}>Email Address</th>
+                    <th className={styles.th}>Role / Status</th>
+                    <th className={styles.th}>Change Role</th>
+                    <th className={styles.th} style={{ textAlign: 'center' }}>Remove</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredUsers.map((user) => (
+                    <tr key={user.id} className={styles.tr}>
+                      <td className={styles.td} style={{ fontFamily: 'monospace', fontSize: '12px' }}>
+                        {user.id.substring(0, 8)}...
+                      </td>
+                      <td className={`${styles.td} ${styles.tdHighlight}`}>{user.name}</td>
+                      <td className={styles.td}>{user.email}</td>
+                      <td className={styles.td}>
+                        <span className={`${styles.roleBadge} ${
+                          user.role === 'ADMIN' 
+                            ? styles.roleAdmin 
+                            : user.role === 'INSTRUCTOR' 
+                              ? styles.roleInstructor 
+                              : styles.roleStudent
+                        }`}>
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className={styles.td}>
+                        <select
+                          value={user.role}
+                          onChange={(e) => handleRoleChange(user.id, e.target.value, user.name)}
+                          className={styles.roleSelectInline}
+                        >
+                          <option value="STUDENT">Student</option>
+                          <option value="INSTRUCTOR">Instructor</option>
+                          <option value="ADMIN">Admin</option>
+                        </select>
+                      </td>
+                      <td className={styles.td}>
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                          <button
+                            onClick={() => handleDeleteUser(user.id, user.name)}
+                            className={styles.revokeBtn}
+                            title="Delete User Account"
+                          >
+                            <UserX size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
+
+        {/* Tab 3: Catalog Course Manager */}
+        {activeTab === 'courses' && (
+          <div className={styles.courseCreationContainer}>
+            {/* Left side: Course list */}
+            <div className={`${styles.tableCard} glass-card`}>
+              <div className={styles.searchHeader}>
+                <h3 style={{ fontSize: '18px', fontWeight: '700' }}>Active Courses</h3>
+                <div className={styles.searchInputWrapper}>
+                  <Search size={16} className={styles.searchIcon} />
+                  <input
+                    type="text"
+                    placeholder="Search courses by title or instructor..."
+                    value={courseSearch}
+                    onChange={(e) => setCourseSearch(e.target.value)}
+                    className="form-input"
+                    style={{ paddingLeft: '42px', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
+
+              {filteredCourses.length === 0 ? (
+                <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  No courses found.
+                </div>
+              ) : (
+                <table className={styles.adminTable}>
+                  <thead>
+                    <tr>
+                      <th className={styles.th}>Course Details</th>
+                      <th className={styles.th}>Instructor</th>
+                      <th className={styles.th}>Price</th>
+                      <th className={styles.th} style={{ textAlign: 'center' }}>Delete</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredCourses.map((course) => (
+                      <tr key={course.id} className={styles.tr}>
+                        <td className={styles.td}>
+                          <div className={styles.courseRow}>
+                            <img src={course.thumbnail} alt="" className={styles.courseThumbnailMini} />
+                            <div>
+                              <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{course.title}</div>
+                              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{course.subtitle}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className={styles.td}>{course.instructor?.name || 'N/A'}</td>
+                        <td className={styles.td} style={{ fontWeight: '700' }}>₹{course.price}</td>
+                        <td className={styles.td}>
+                          <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            <button
+                              onClick={() => handleDeleteCourse(course.id, course.title)}
+                              className={styles.revokeBtn}
+                              title="Delete Course listing"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* Right side: Add Course Form */}
+            <div className={`${styles.formCard} glass-card`}>
+              <h3 className={styles.formTitle}>
+                <PlusCircle size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+                Create New Course
+              </h3>
+              <form onSubmit={handleCreateCourse} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label} style={{ fontSize: '13px' }}>Course Title *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Next.js 16 Boot Camp"
+                    value={courseTitle}
+                    onChange={(e) => setCourseTitle(e.target.value)}
+                    className="form-input"
+                    required
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label} style={{ fontSize: '13px' }}>Subtitle</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Build real world applications"
+                    value={courseSubtitle}
+                    onChange={(e) => setCourseSubtitle(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label} style={{ fontSize: '13px' }}>Instructor *</label>
+                  <select
+                    value={courseInstructor}
+                    onChange={(e) => setCourseInstructor(e.target.value)}
+                    className={styles.selectInput}
+                    required
+                  >
+                    <option value="">-- Choose Instructor --</option>
+                    {instructorsList.map((inst) => (
+                      <option key={inst.id} value={inst.id}>
+                        {inst.name} ({inst.role})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className={styles.formGroup} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label className={styles.label} style={{ fontSize: '13px' }}>Price (INR) *</label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 499"
+                      value={coursePrice}
+                      onChange={(e) => setCoursePrice(e.target.value)}
+                      className="form-input"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className={styles.label} style={{ fontSize: '13px' }}>Thumbnail Path</label>
+                    <input
+                      type="text"
+                      placeholder="/nextjs-course.jpg"
+                      value={courseThumbnail}
+                      onChange={(e) => setCourseThumbnail(e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label} style={{ fontSize: '13px' }}>Course Description</label>
+                  <textarea
+                    placeholder="Provide a detailed syllabus description..."
+                    value={courseDescription}
+                    onChange={(e) => setCourseDescription(e.target.value)}
+                    className={styles.textareaInput}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={createCourseLoading}
+                  className="btn-primary"
+                  style={{ width: '100%', padding: '12px', marginTop: '10px', fontSize: '13px' }}
+                >
+                  {createCourseLoading ? 'Creating Course...' : 'Create Course'}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 4: Access Control (Manual Enrollment) */}
+        {activeTab === 'access' && (
+          <div className={styles.layoutGrid}>
+            {/* Left side: Enrollments List */}
+            <div className={`${styles.tableCard} glass-card`}>
+              <div className={styles.searchHeader}>
+                <h3 style={{ fontSize: '18px', fontWeight: '700' }}>Active Student Access Rights</h3>
+                <div className={styles.searchInputWrapper}>
+                  <Search size={16} className={styles.searchIcon} />
+                  <input
+                    type="text"
+                    placeholder="Search by student name, email, or course..."
+                    value={accessSearch}
+                    onChange={(e) => setAccessSearch(e.target.value)}
+                    className="form-input"
+                    style={{ paddingLeft: '42px', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
+
+              {filteredEnrollments.length === 0 ? (
+                <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  No active enrollment access rights found.
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table className={styles.adminTable}>
+                    <thead>
+                      <tr>
+                        <th className={styles.th}>Student</th>
+                        <th className={styles.th}>Email Address</th>
+                        <th className={styles.th}>Course Enrolled</th>
+                        <th className={styles.th} style={{ textAlign: 'center' }}>Revoke</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredEnrollments.map((enrollment) => {
+                        const isExpanded = expandedEnrollment === enrollment.id;
+                        const hasBilling = !!enrollment.billingName;
+                        return (
+                          <Fragment key={enrollment.id}>
+                            <tr 
+                              className={styles.tr} 
+                              onClick={() => toggleEnrollmentDetails(enrollment.id)}
+                              style={{ cursor: 'pointer' }}
+                            >
+                              <td className={`${styles.td} ${styles.tdHighlight}`}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                                    {isExpanded ? '▼' : '▶'}
+                                  </span>
+                                  {enrollment.student?.name}
+                                </div>
+                              </td>
+                              <td className={styles.td}>{enrollment.student?.email}</td>
+                              <td className={styles.td} style={{ color: 'var(--text-primary)' }}>{enrollment.course?.title}</td>
+                              <td className={styles.td} onClick={(e) => e.stopPropagation()}>
+                                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                  <button
+                                    onClick={() => handleRevokeAccess(enrollment.id, enrollment.student?.name, enrollment.course?.title)}
+                                    className={styles.revokeBtn}
+                                    title="Revoke Student Access"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                            {isExpanded && (
+                              <tr style={{ backgroundColor: 'rgba(255, 255, 255, 0.01)' }}>
+                                <td colSpan="4" style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-trans)' }}>
+                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+                                    <div>
+                                      <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: '10px' }}>
+                                        Billing Information
+                                      </h4>
+                                      {hasBilling ? (
+                                        <div style={{ fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '6px', color: 'var(--text-secondary)' }}>
+                                          <div><strong>Billing Name:</strong> {enrollment.billingName}</div>
+                                          <div><strong>Phone Number:</strong> {enrollment.billingPhone}</div>
+                                          <div>
+                                            <strong>Address:</strong> {enrollment.billingAddress}, {enrollment.billingCity}, {enrollment.billingState} - {enrollment.billingZip}
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                                          No custom billing details saved (Manually enrolled).
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                                      <div style={{ fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '6px', color: 'var(--text-secondary)', alignItems: 'flex-end' }}>
+                                        <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--primary)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                                          Payment Metadata
+                                        </h4>
+                                        <div><strong>Gateway:</strong> Razorpay Sandbox</div>
+                                        <div><strong>Payment ID:</strong> {enrollment.razorpayPaymentId || 'N/A'}</div>
+                                        <div><strong>Order ID:</strong> {enrollment.razorpayOrderId || 'N/A'}</div>
+                                      </div>
+                                      
+                                      {hasBilling && (
+                                        <a
+                                          href={`/invoices/invoice_${enrollment.id}.html`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="btn-secondary"
+                                          style={{ padding: '8px 12px', fontSize: '12px', width: 'fit-content', marginTop: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                                        >
+                                          📄 View Generated Invoice ↗
+                                        </a>
+                                      )}
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </Fragment>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Right side: Grant Access Form */}
+            <div className={`${styles.formCard} glass-card`}>
+              <h3 className={styles.formTitle}>
+                <PlusCircle size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+                Grant Manual Access
+              </h3>
+              <form onSubmit={handleManualEnroll} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label} style={{ fontSize: '13px' }}>Select Student</label>
+                  <select 
+                    value={selectedStudent} 
+                    onChange={(e) => setSelectedStudent(e.target.value)}
+                    className={styles.selectInput}
+                    required
+                  >
+                    <option value="">-- Choose Student --</option>
+                    {studentsList.map((student) => (
+                      <option key={student.id} value={student.id}>
+                        {student.name} ({student.email})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label} style={{ fontSize: '13px' }}>Select Course</label>
+                  <select 
+                    value={selectedCourse} 
+                    onChange={(e) => setSelectedCourse(e.target.value)}
+                    className={styles.selectInput}
+                    required
+                  >
+                    <option value="">-- Choose Course --</option>
+                    {courses.map((course) => (
+                      <option key={course.id} value={course.id}>
+                        {course.title} (₹{course.price})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={submitLoading}
+                  className="btn-primary" 
+                  style={{ width: '100%', padding: '12px', marginTop: '10px', fontSize: '13px' }}
+                >
+                  {submitLoading ? 'Granting Access...' : 'Grant Access'}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 5: Student Q&A Moderation */}
+        {activeTab === 'qa' && (
+          <div className={`${styles.tableCard} glass-card`}>
+            <div className={styles.searchHeader}>
+              <h3 style={{ fontSize: '18px', fontWeight: '700' }}>Student Q&A Moderation</h3>
+              <div className={styles.searchInputWrapper}>
+                <Search size={16} className={styles.searchIcon} />
+                <input
+                  type="text"
+                  placeholder="Search by student, course, lecture, or content..."
+                  value={qaSearch}
+                  onChange={(e) => setQaSearch(e.target.value)}
+                  className="form-input"
+                  style={{ paddingLeft: '42px', fontSize: '13px' }}
+                />
+              </div>
+            </div>
+
+            {filteredQuestions.length === 0 ? (
+              <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                No Q&A questions found.
+              </div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table className={styles.adminTable}>
+                  <thead>
+                    <tr>
+                      <th className={styles.th}>Student Details</th>
+                      <th className={styles.th}>Course & Lecture</th>
+                      <th className={styles.th}>Question Content</th>
+                      <th className={styles.th}>Date Posted</th>
+                      <th className={styles.th} style={{ textAlign: 'center' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredQuestions.map((q) => {
+                      const courseTitle = q.lecture?.section?.course?.title || 'Unknown Course';
+                      const lectureTitle = q.lecture?.title || 'Unknown Lecture';
+                      const courseId = q.lecture?.section?.course?.id;
+                      return (
+                        <tr key={q.id} className={styles.tr}>
+                          <td className={styles.td}>
+                            <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{q.student?.name || 'N/A'}</div>
+                            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{q.student?.email || 'N/A'}</div>
+                          </td>
+                          <td className={styles.td}>
+                            <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{courseTitle}</div>
+                            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{lectureTitle}</div>
+                          </td>
+                          <td className={styles.td} style={{ maxWidth: '300px', wordBreak: 'break-word', color: 'var(--text-secondary)' }}>
+                            {q.content}
+                          </td>
+                          <td className={styles.td}>
+                            {new Date(q.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className={styles.td}>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', alignItems: 'center' }}>
+                              {courseId && (
+                                <Link
+                                  href={`/classroom/${courseId}?lectureId=${q.lectureId}`}
+                                  target="_blank"
+                                  className="btn-primary"
+                                  style={{ padding: '6px 12px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}
+                                >
+                                  Reply ↗
+                                </Link>
+                              )}
+                              <button
+                                onClick={() => handleDeleteQuestion(q.id, q.content.substring(0, 30))}
+                                className={styles.revokeBtn}
+                                title="Delete Question"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tab 6: InnoTech Events Management */}
+        {activeTab === 'competitions' && (
+          <div className={styles.layoutGrid}>
+            {/* Left side: Competitions List */}
+            <div className={`${styles.tableCard} glass-card`}>
+              <div className={styles.searchHeader}>
+                <h3 style={{ fontSize: '18px', fontWeight: '700' }}>Active InnoTech Challenges</h3>
+                <div className={styles.searchInputWrapper}>
+                  <Search size={16} className={styles.searchIcon} />
+                  <input
+                    type="text"
+                    placeholder="Search events by title..."
+                    value={compSearch}
+                    onChange={(e) => setCompSearch(e.target.value)}
+                    className="form-input"
+                    style={{ paddingLeft: '42px', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
+
+              {filteredCompetitions.length === 0 ? (
+                <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  No competitions or events found.
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table className={styles.adminTable}>
+                    <thead>
+                      <tr>
+                        <th className={styles.th}>Event Details</th>
+                        <th className={styles.th}>Timeline</th>
+                        <th className={styles.th}>Submissions</th>
+                        <th className={styles.th}>Status</th>
+                        <th className={styles.th} style={{ textAlign: 'center' }}>Remove</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredCompetitions.map((comp) => {
+                        const now = new Date();
+                        const isUpcoming = now < new Date(comp.startDate);
+                        const isExpired = now > new Date(comp.endDate);
+                        const isActive = !isUpcoming && !isExpired;
+                        
+                        let statusText = 'Active';
+                        let statusStyle = styles.roleInstructor; // Orange-ish
+                        if (isUpcoming) {
+                          statusText = 'Upcoming';
+                          statusStyle = styles.roleStudent; // Cyan-ish
+                        } else if (isExpired) {
+                          statusText = 'Completed';
+                          statusStyle = styles.roleAdmin; // Purple-ish
+                        }
+
+                        return (
+                          <tr key={comp.id} className={styles.tr}>
+                            <td className={styles.td}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <img 
+                                  src={comp.image} 
+                                  alt={comp.title} 
+                                  style={{ width: '48px', height: '32px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border-trans)' }} 
+                                />
+                                <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{comp.title}</div>
+                              </div>
+                            </td>
+                            <td className={styles.td} style={{ fontSize: '12px' }}>
+                              <div><strong>Start:</strong> {new Date(comp.startDate).toLocaleDateString()}</div>
+                              <div><strong>End:</strong> {new Date(comp.endDate).toLocaleDateString()}</div>
+                            </td>
+                            <td className={styles.td} style={{ fontWeight: '700', color: 'var(--primary)' }}>
+                              {comp._count?.submissions || 0}
+                            </td>
+                            <td className={styles.td}>
+                              <select
+                                value={comp.status || 'REGISTRATIONS_OPEN'}
+                                onChange={(e) => handleCompStatusChange(comp.id, e.target.value, comp.title)}
+                                className={styles.roleSelectInline}
+                                style={{ fontSize: '11.5px', padding: '5px 8px', borderRadius: '6px' }}
+                              >
+                                <option value="REGISTRATIONS_OPEN">Registrations Open</option>
+                                <option value="REGISTRATIONS_CLOSED">Registrations Closed</option>
+                                <option value="RESULT">Result Out</option>
+                              </select>
+                            </td>
+                            <td className={styles.td}>
+                              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                <button
+                                  onClick={() => handleDeleteCompetition(comp.id, comp.title)}
+                                  className={styles.revokeBtn}
+                                  title="Delete Competition event"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Right side: Add Competition Form */}
+            <div className={`${styles.formCard} glass-card`}>
+              <h3 className={styles.formTitle}>
+                <PlusCircle size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+                Create New Event
+              </h3>
+              <form onSubmit={handleCreateCompetition} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label} style={{ fontSize: '13px' }}>Event Title *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. GLAM LENS 2026 Mobile Challenge"
+                    value={compTitle}
+                    onChange={(e) => setCompTitle(e.target.value)}
+                    className="form-input"
+                    required
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label} style={{ fontSize: '13px' }}>Start Date *</label>
+                  <input
+                    type="datetime-local"
+                    value={compStartDate}
+                    onChange={(e) => setCompStartDate(e.target.value)}
+                    className="form-input"
+                    required
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label} style={{ fontSize: '13px' }}>End Date *</label>
+                  <input
+                    type="datetime-local"
+                    value={compEndDate}
+                    onChange={(e) => setCompEndDate(e.target.value)}
+                    className="form-input"
+                    required
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label} style={{ fontSize: '13px' }}>Event Status *</label>
+                  <select 
+                    value={compStatus} 
+                    onChange={(e) => setCompStatus(e.target.value)}
+                    className={styles.selectInput}
+                    required
+                  >
+                    <option value="REGISTRATIONS_OPEN">Registrations Open</option>
+                    <option value="REGISTRATIONS_CLOSED">Registrations Closed</option>
+                    <option value="RESULT">Result Out</option>
+                  </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label} style={{ fontSize: '13px' }}>Cover Image URL</label>
+                  <input
+                    type="text"
+                    placeholder="https://images.unsplash.com/..."
+                    value={compImage}
+                    onChange={(e) => setCompImage(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label} style={{ fontSize: '13px' }}>Competition Rules</label>
+                  <textarea
+                    placeholder="Provide bullet rules (e.g. 1. No AI-gen. 2. Must be original...)"
+                    value={compRules}
+                    onChange={(e) => setCompRules(e.target.value)}
+                    className={styles.textareaInput}
+                    style={{ minHeight: '60px' }}
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label} style={{ fontSize: '13px' }}>Event Description</label>
+                  <textarea
+                    placeholder="Provide a detailed description of the contest details..."
+                    value={compDescription}
+                    onChange={(e) => setCompDescription(e.target.value)}
+                    className={styles.textareaInput}
+                    style={{ minHeight: '80px' }}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={createCompLoading}
+                  className="btn-primary"
+                  style={{ width: '100%', padding: '12px', marginTop: '10px', fontSize: '13px' }}
+                >
+                  {createCompLoading ? 'Creating Event...' : 'Create Event'}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
+

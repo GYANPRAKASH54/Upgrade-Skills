@@ -1,0 +1,155 @@
+// Prisma Schema for upgradeskills-react LMS & InnoTechXperience platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  password     String
+  role         String        @default("STUDENT") // STUDENT, INSTRUCTOR, ADMIN
+  createdAt    DateTime      @default(now())
+  
+  // Relations
+  courses      Course[]      @relation("InstructorCourses")
+  enrollments  Enrollment[]
+  submissions  Submission[]
+  questions    Question[]
+}
+
+model Course {
+  id           String        @id @default(uuid())
+  title        String
+  subtitle     String
+  description  String
+  price        Float
+  thumbnail    String
+  published    Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  
+  // Relations
+  instructorId String
+  instructor   User          @relation("InstructorCourses", fields: [instructorId], references: [id])
+  sections     Section[]
+  enrollments  Enrollment[]
+}
+
+model Section {
+  id        String    @id @default(uuid())
+  title     String
+  sortOrder Int
+  
+  // Relations
+  courseId  String
+  course    Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lectures  Lecture[]
+}
+
+model Lecture {
+  id        String     @id @default(uuid())
+  title     String
+  videoUrl  String
+  duration  Int        @default(0) // Duration in seconds
+  sortOrder Int
+  
+  // Relations
+  sectionId String
+  section   Section    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  progress  Progress[]
+  questions Question[]
+}
+
+model Enrollment {
+  id        String   @id @default(uuid())
+  joinedAt  DateTime @default(now())
+  completed Boolean  @default(false)
+  
+  // Relations
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  // Billing Info
+  billingName       String?
+  billingPhone      String?
+  billingAddress    String?
+  billingCity       String?
+  billingState      String?
+  billingZip        String?
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+
+  @@unique([studentId, courseId])
+}
+
+model Progress {
+  id          String   @id @default(uuid())
+  completed   Boolean  @default(false)
+  watchTime   Int      @default(0) // Watch time in seconds
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  studentId   String
+  lectureId   String
+  lecture     Lecture  @relation(fields: [lectureId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, lectureId])
+}
+
+model Competition {
+  id          String       @id @default(uuid())
+  title       String
+  description String
+  image       String
+  rules       String
+  startDate   DateTime
+  endDate     DateTime
+  status      String       @default("REGISTRATIONS_OPEN") // REGISTRATIONS_OPEN, REGISTRATIONS_CLOSED, RESULT
+  
+  // Relations
+  submissions Submission[]
+}
+
+model Submission {
+  id                String      @id @default(uuid())
+  projectTitle      String
+  description       String
+  projectLink       String
+  imageUrl          String?
+  score             Float?
+  certificateIssued Boolean     @default(false)
+  createdAt         DateTime    @default(now())
+  
+  // Relations
+  competitionId     String
+  competition       Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  studentId         String
+  student           User        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([competitionId, studentId])
+}
+
+model Question {
+  id         String   @id @default(uuid())
+  content    String
+  createdAt  DateTime @default(now())
+  
+  // Relations
+  studentId  String
+  student    User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  lectureId  String
+  lecture    Lecture  @relation(fields: [lectureId], references: [id], onDelete: Cascade)
+
+  // Threading / Nested Replies
+  parentId   String?
+  parent     Question?  @relation("QuestionReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies    Question[] @relation("QuestionReplies")
+}
+

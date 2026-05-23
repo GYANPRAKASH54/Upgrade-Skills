@@ -1,0 +1,176 @@
+.pageHeader {
+  padding: 60px 0 40px 0;
+  background: radial-gradient(circle at 90% 0%, hsla(180, 100%, 48%, 0.08) 0%, transparent 60%);
+  border-bottom: 1px solid var(--border-trans);
+  margin-bottom: 40px;
+}
+
+.title {
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.description {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+.sectionTitle {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 24px;
+}
+
+.challengesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 30px;
+  margin-bottom: 60px;
+}
+
+/* Challenge Detail Layout */
+.detailGrid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 40px;
+  margin-bottom: 80px;
+}
+
+@media (max-width: 992px) {
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mainCol {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.sidebarCol {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.imageBanner {
+  width: 100%;
+  aspect-ratio: 21/9;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-trans);
+}
+
+.cardBlock {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-trans);
+  border-radius: var(--radius-md);
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.blockTitle {
+  font-size: 20px;
+  font-weight: 800;
+  border-bottom: 1px solid var(--border-trans);
+  padding-bottom: 10px;
+}
+
+.rulesList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.rulesItem {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: var(--text-secondary);
+}
+
+/* Submissions Grid */
+.galleryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.galleryCard {
+  background-color: var(--bg-deep);
+  border: 1px solid var(--border-trans);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: var(--transition-smooth);
+}
+
+.galleryCard:hover {
+  border-color: var(--primary);
+  transform: translateY(-4px);
+}
+
+.galleryThumbnail {
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+}
+
+.galleryBody {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.galleryTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.galleryUser {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.galleryFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-trans);
+}
+
+.scoreBadge {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  background-color: var(--accent-glow);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+/* Submission Form */
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}

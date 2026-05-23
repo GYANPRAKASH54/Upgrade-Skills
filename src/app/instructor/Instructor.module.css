@@ -1,0 +1,223 @@
+.dashboardHeader {
+  padding: 40px 0;
+  border-bottom: 1px solid var(--border-trans);
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+@media (max-width: 768px) {
+  .statsRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+.statCard {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-trans);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.statVal {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.statLabel {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.sectionTitle {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.coursesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.courseItem {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-trans);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.courseThumbnail {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+}
+
+.courseBody {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.courseTitle {
+  font-size: 16px;
+  font-weight: 700;
+  height: 44px;
+  overflow: hidden;
+}
+
+.courseFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-trans);
+}
+
+/* Edit Course Curriculum Page */
+.editorGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 80px;
+}
+
+@media (max-width: 992px) {
+  .editorGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.editorSection {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-trans);
+  border-radius: var(--radius-md);
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: fit-content;
+}
+
+.curriculumBuilder {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.builderSectionCard {
+  border: 1px solid var(--border-trans);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-deep);
+  overflow: hidden;
+}
+
+.builderSectionHeader {
+  padding: 16px 20px;
+  background-color: hsla(0, 0%, 100%, 0.02);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-trans);
+}
+
+.sectionInput {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 15px;
+  width: 70%;
+  outline: none;
+  border-bottom: 1px dashed var(--text-muted);
+}
+
+.sectionInput:focus {
+  border-bottom-color: var(--primary);
+}
+
+.builderLecturesList {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.builderLectureCard {
+  padding: 12px 16px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-trans);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lectureInputGroup {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 10px;
+}
+
+.lectureSubInput {
+  padding: 6px 10px;
+  font-size: 13px;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-trans);
+  border-radius: 4px;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.lectureSubInput:focus {
+  border-color: var(--primary);
+}
+
+.deleteBtn {
+  background: none;
+  border: none;
+  color: #ff4d4d;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.deleteBtn:hover {
+  background-color: rgba(255, 77, 77, 0.15);
+}
