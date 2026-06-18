@@ -3,6 +3,11 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 
+// Simple in-memory cache for course queries to handle high concurrency/load tests
+const COURSE_CACHE = new Map();
+const CACHE_TTL = 10000; // 10 seconds cache duration
+const ACTIVE_PROMISES = new Map(); // Request collapsing (single-flight) database queries
+
 // GET: Fetch all published courses (or search courses)
 export async function GET(request) {
   try {
@@ -10,6 +15,21 @@ export async function GET(request) {
     const search = searchParams.get('search') || '';
     const category = searchParams.get('category') || '';
     const instructorId = searchParams.get('instructorId') || '';
+
+    const cacheKey = JSON.stringify({ search, category, instructorId });
+    const cached = COURSE_CACHE.get(cacheKey);
+    const now = Date.now();
+
+    if (cached && (now - cached.timestamp < CACHE_TTL)) {
+      return NextResponse.json(cached.data);
+    }
+
+    // Collapse concurrent identical requests to a single database query
+    let activePromise = ACTIVE_PROMISES.get(cacheKey);
+    if (activePromise) {
+      const courses = await activePromise;
+      return NextResponse.json(courses);
+    }
 
     const where = {};
 
@@ -28,7 +48,7 @@ export async function GET(request) {
       ];
     }
 
-    const courses = await prisma.course.findMany({
+    activePromise = prisma.course.findMany({
       where,
       include: {
         instructor: {
@@ -43,7 +63,21 @@ export async function GET(request) {
       },
     });
 
-    return NextResponse.json(courses);
+    ACTIVE_PROMISES.set(cacheKey, activePromise);
+
+    try {
+      const courses = await activePromise;
+
+      // Store in cache
+      COURSE_CACHE.set(cacheKey, {
+        data: courses,
+        timestamp: Date.now(),
+      });
+
+      return NextResponse.json(courses);
+    } finally {
+      ACTIVE_PROMISES.delete(cacheKey);
+    }
   } catch (error) {
     console.error('Fetch courses error:', error);
     return NextResponse.json({ error: 'Failed to fetch courses' }, { status: 500 });
@@ -76,6 +110,9 @@ export async function POST(request) {
         published: false, // Start unpublished
       },
     });
+
+    // Clear cache to reflect updates
+    COURSE_CACHE.clear();
 
     return NextResponse.json(course, { status: 201 });
   } catch (error) {

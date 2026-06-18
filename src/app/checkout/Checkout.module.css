@@ -1,0 +1,234 @@
+.container {
+  max-width: var(--page-max-width);
+  margin: 40px auto;
+  padding: 0 24px 80px 24px;
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 40px;
+}
+
+.leftPane {
+  display: flex;
+  flex-direction: column;
+}
+
+.rightPane {
+  height: fit-content;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+}
+
+.errorBanner {
+  background-color: rgba(255, 77, 77, 0.1);
+  border: 2px solid #ff4d4d;
+  color: #ff4d4d;
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.courseCard {
+  padding: 24px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  background-color: var(--bg-card);
+  border: 2px solid var(--border-trans);
+  border-radius: var(--radius-md);
+}
+
+.courseThumbnail {
+  width: 100px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border-trans);
+  flex-shrink: 0;
+}
+
+.courseDetails {
+  display: flex;
+  flex-direction: column;
+}
+
+.courseTitle {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.courseInstructor {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-weight: 700;
+}
+
+.billingCard {
+  padding: 24px;
+  margin-top: 24px;
+  background-color: var(--bg-card);
+  border: 2px solid var(--border-trans);
+  border-radius: var(--radius-md);
+}
+
+.billingTitle {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  border-bottom: 2px solid var(--border-trans);
+  padding-bottom: 8px;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.formRowSingle {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.formRow3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.securityNote {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 24px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.summaryCard {
+  padding: 24px;
+  height: fit-content;
+  background-color: var(--bg-card);
+  border: 2px solid var(--border-trans);
+  border-radius: var(--radius-md);
+}
+
+.summaryTitle {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  border-bottom: 2px solid var(--border-trans);
+  padding-bottom: 10px;
+}
+
+.summaryRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.summaryTotalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  border-top: 2px solid var(--border-trans);
+  padding-top: 12px;
+}
+
+.payButton {
+  width: 100%;
+  padding: 14px;
+  background-color: var(--primary);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-buttons);
+  font-family: var(--font-din-round);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--primary-shadow);
+  transition: var(--transition-button);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  top: 0;
+  user-select: none;
+}
+
+.payButton:hover {
+  filter: brightness(1.08);
+}
+
+.payButton:active {
+  top: 4px;
+  box-shadow: 0 0px 0 var(--primary-shadow);
+}
+
+/* Responsiveness Media Queries */
+@media (max-width: 768px) {
+  .container {
+    grid-template-columns: 1fr;
+    gap: 30px;
+    padding: 0 16px 60px 16px;
+    margin: 20px auto;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .formRow3 {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .courseCard {
+    padding: 16px;
+  }
+  
+  .billingCard {
+    padding: 16px;
+    margin-top: 16px;
+  }
+}

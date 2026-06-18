@@ -141,7 +141,7 @@ export default function CourseEditorClient({ course }) {
   return (
     <div className="container" style={{ paddingBottom: '100px' }}>
       {/* Top navbar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', margin: '30px 0' }}>
+      <div className={styles.editorHeader}>
         <Link href="/instructor" className="btn-secondary" style={{ padding: '8px 12px' }}>
           <ArrowLeft size={16} /> Back
         </Link>
@@ -190,7 +190,7 @@ export default function CourseEditorClient({ course }) {
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className={styles.priceStatusGrid}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label className={styles.label}>Price (INR)</label>
                 <input 
@@ -204,7 +204,7 @@ export default function CourseEditorClient({ course }) {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label className={styles.label}>Status</label>
-                <div style={{ display: 'flex', gap: '10px', height: '100%', alignItems: 'center' }}>
+                <div className={styles.statusBtnWrapper}>
                   <button
                     type="button"
                     onClick={() => setPublished(!published)}
@@ -225,15 +225,136 @@ export default function CourseEditorClient({ course }) {
               </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label className={styles.label}>Thumbnail Image URL</label>
-              <input 
-                type="text" 
-                value={thumbnail} 
-                onChange={(e) => setThumbnail(e.target.value)} 
-                className="form-input" 
-              />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <label className={styles.label}>Course Cover Image</label>
+              
+              {/* Image Preview */}
+              <div 
+                className="glass-card" 
+                style={{ 
+                  width: '100%', 
+                  aspectRatio: '16/9', 
+                  borderRadius: 'var(--radius-sm)', 
+                  overflow: 'hidden', 
+                  position: 'relative',
+                  border: '1px solid var(--border-trans)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(255,255,255,0.02)'
+                }}
+              >
+                {thumbnail ? (
+                  <img 
+                    src={thumbnail} 
+                    alt="Course Preview" 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      const parent = e.target.parentElement;
+                      let errorDiv = parent.querySelector('.preview-error');
+                      if (!errorDiv) {
+                        errorDiv = document.createElement('div');
+                        errorDiv.className = 'preview-error';
+                        errorDiv.innerHTML = '<span style="color: var(--text-muted); font-size: 13px;">⚠️ Invalid or Broken Image Link</span>';
+                        parent.appendChild(errorDiv);
+                      }
+                    }}
+                    onLoad={(e) => {
+                      const parent = e.target.parentElement;
+                      const errorDiv = parent.querySelector('.preview-error');
+                      if (errorDiv) errorDiv.remove();
+                      e.target.style.display = 'block';
+                    }}
+                  />
+                ) : (
+                  <div style={{ color: 'var(--text-muted)', fontSize: '13px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                    <span>No Image Selected</span>
+                    <span style={{ fontSize: '11px', opacity: 0.7 }}>(Paste a link or upload a local file)</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Upload & Paste Inputs */}
+              <div className={styles.thumbnailInputs}>
+                <input 
+                  type="text" 
+                  placeholder="Paste Image URL..."
+                  value={thumbnail} 
+                  onChange={(e) => setThumbnail(e.target.value)} 
+                  className="form-input" 
+                  style={{ flex: 1, width: '100%' }}
+                />
+                
+                <label 
+                  className="btn-secondary" 
+                  style={{ 
+                    padding: '12px 16px', 
+                    fontSize: '13px', 
+                    cursor: 'pointer', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '6px',
+                    margin: 0,
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  <Plus size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> Upload File
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    style={{ display: 'none' }} 
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          const img = new Image();
+                          img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            const targetWidth = 800;
+                            const targetHeight = 450;
+                            
+                            canvas.width = targetWidth;
+                            canvas.height = targetHeight;
+                            
+                            const ctx = canvas.getContext('2d');
+                            const imgAspect = img.width / img.height;
+                            const targetAspect = targetWidth / targetHeight;
+                            
+                            let sourceX = 0;
+                            let sourceY = 0;
+                            let sourceWidth = img.width;
+                            let sourceHeight = img.height;
+                            
+                            if (imgAspect > targetAspect) {
+                              sourceWidth = img.height * targetAspect;
+                              sourceX = (img.width - sourceWidth) / 2;
+                            } else if (imgAspect < targetAspect) {
+                              sourceHeight = img.width / targetAspect;
+                              sourceY = (img.height - sourceHeight) / 2;
+                            }
+                            
+                            ctx.drawImage(
+                              img,
+                              sourceX, sourceY, sourceWidth, sourceHeight,
+                              0, 0, targetWidth, targetHeight
+                            );
+                            
+                            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.75);
+                            setThumbnail(compressedBase64);
+                          };
+                          img.src = event.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+
+                </label>
+              </div>
             </div>
+
 
             <button 
               type="submit" 
@@ -321,7 +442,7 @@ export default function CourseEditorClient({ course }) {
                         </div>
 
                         {/* Title and Duration inputs */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
+                        <div className={styles.lectureInputGroup}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                             <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Lecture Title</span>
                             <input

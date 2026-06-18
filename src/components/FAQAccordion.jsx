@@ -6,7 +6,7 @@ import styles from '../app/Home.module.css';
 
 const FAQs = [
   {
-    question: 'Who are the instructors at UpgradeSkills?',
+    question: 'Who are the instructors at Upgrade Skills?',
     answer: 'Our mentors are verified industry experts hailing from premium institutes like IIT, IIM, NIFT and leading global brands like Raymond, ITC, Reliance, and Cognizant. They bring practical, hands-on experience to our masterclasses.',
   },
   {
@@ -39,7 +39,7 @@ export default function FAQAccordion() {
       {FAQs.map((faq, index) => {
         const isOpen = openIndex === index;
         return (
-          <div key={index} className={`${styles.faqItem} glass-card ${isOpen ? styles.faqOpen : ''}`}>
+          <div key={index} className={`${styles.faqItem} ${isOpen ? styles.faqOpen : ''}`}>
             <button onClick={() => toggleFAQ(index)} className={styles.faqHeader}>
               <span className={styles.faqQuestion}>{faq.question}</span>
               <ChevronDown size={18} className={`${styles.faqChevron} ${isOpen ? styles.faqChevronRotate : ''}`} />

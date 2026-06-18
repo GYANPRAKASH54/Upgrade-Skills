@@ -53,8 +53,7 @@ export default function SignUpPage() {
         setError('Registered, but automatic login failed. Please sign in manually.');
         setLoading(false);
       } else {
-        router.push('/');
-        router.refresh();
+        window.location.href = '/';
       }
     } catch (err) {
       console.error(err);
@@ -68,7 +67,7 @@ export default function SignUpPage() {
       <div className={styles.authCard}>
         <div className={styles.titleSection}>
           <h2 className={styles.title}>Create Account</h2>
-          <p className={styles.subtitle}>Join UpgradeSkills to master new skills</p>
+          <p className={styles.subtitle}>Join Upgrade Skills to master new skills</p>
         </div>
 
         {error && (

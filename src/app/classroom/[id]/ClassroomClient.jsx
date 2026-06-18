@@ -5,7 +5,7 @@ import { PlayCircle, CheckSquare, Square, ChevronRight, MessageSquare, Download,
 import Link from 'next/link';
 import styles from './Classroom.module.css';
 
-export default function ClassroomClient({ course, initialProgress, currentUser }) {
+export default function ClassroomClient({ course, initialProgress, currentUser, enrollment }) {
   const [activeLecture, setActiveLecture] = useState(null);
   const [completedLectures, setCompletedLectures] = useState(initialProgress);
   const [activeTab, setActiveTab] = useState('about');
@@ -19,18 +19,43 @@ export default function ClassroomClient({ course, initialProgress, currentUser }
   const youtubeContainerRef = useRef(null);
 
   const isStaff = currentUser?.role === 'ADMIN' || currentUser?.role === 'INSTRUCTOR';
+  const canToggleProgress = isStaff || currentUser?.role === 'TESTER';
   const isActiveLectureCompleted = activeLecture && completedLectures.includes(activeLecture.id);
 
   const getYouTubeId = (url) => {
     if (!url) return null;
+    
+    const patterns = [
+      /(?:https?:\/\/)?(?:www\.)?youtu\.be\/([^#\&\?]{11})/,
+      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([^#\&\?]{11})/,
+      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/v\/([^#\&\?]{11})/,
+      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([^#\&\?]{11})/,
+      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/shorts\/([^#\&\?]{11})/,
+      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/video\/([^#\&\?]{11})/,
+      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/.*[?&]v=([^#\&\?]{11})/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+    
+    // Fallback legacy regex
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
     const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
+    if (match && match[2] && match[2].length === 11) {
+      return match[2];
+    }
+    
+    return null;
   };
 
   const isYouTubeUrl = (url) => {
     if (!url) return false;
-    return url.includes('youtube.com') || url.includes('youtu.be');
+    const lowerUrl = url.toLowerCase();
+    return lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be') || lowerUrl.includes('youtube-nocookie.com');
   };
 
   // Load YouTube script once
@@ -267,7 +292,7 @@ export default function ClassroomClient({ course, initialProgress, currentUser }
     // Prevent lecture click trigger if checkbox is clicked directly
     e.stopPropagation();
     
-    if (!isStaff) {
+    if (!canToggleProgress) {
       return; // Block standard students from toggling manually
     }
     
@@ -665,34 +690,67 @@ export default function ClassroomClient({ course, initialProgress, currentUser }
               display: 'flex', 
               flexDirection: 'column', 
               gap: '10px', 
-              borderColor: 'var(--accent)', 
-              background: 'hsla(180, 100%, 48%, 0.02)',
+              borderColor: enrollment?.quizPassed || isStaff ? 'var(--accent)' : '#fbbf24', 
+              background: enrollment?.quizPassed || isStaff ? 'hsla(180, 100%, 48%, 0.02)' : 'rgba(251, 191, 36, 0.02)',
               textAlign: 'left'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Award size={18} style={{ color: 'var(--accent)' }} />
-                <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>Certificate Eligible!</span>
-              </div>
-              <p style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                Congratulations! You have completed {percentCompleted}% of the course. Click below to view and download your certificate.
-              </p>
-              <Link 
-                href={`/classroom/${course.id}/certificate`} 
-                target="_blank" 
-                className="btn-primary" 
-                style={{ 
-                  padding: '8px 12px', 
-                  fontSize: '12px', 
-                  textAlign: 'center', 
-                  display: 'inline-flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  gap: '6px',
-                  background: 'linear-gradient(135deg, var(--accent), var(--primary))'
-                }}
-              >
-                <Award size={14} /> Download Certificate
-              </Link>
+              {enrollment?.quizPassed || isStaff ? (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Award size={18} style={{ color: 'var(--accent)' }} />
+                    <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>Certificate Unlocked!</span>
+                  </div>
+                  <p style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                    Congratulations! You have completed the course and passed the final exam{enrollment?.quizScore !== null && enrollment?.quizScore !== undefined && ` (Score: ${enrollment.quizScore}%)`}. Click below to claim your certificate.
+                  </p>
+                  <Link 
+                    href={`/classroom/${course.id}/certificate`} 
+                    target="_blank" 
+                    className="btn-primary" 
+                    style={{ 
+                      padding: '8px 12px', 
+                      fontSize: '12px', 
+                      textAlign: 'center', 
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      gap: '6px',
+                      background: 'linear-gradient(135deg, var(--accent), var(--primary))'
+                    }}
+                  >
+                    <Award size={14} /> Download Certificate
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Award size={18} style={{ color: '#fbbf24' }} />
+                    <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>Final Exam Required</span>
+                  </div>
+                  <p style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                    You have completed {percentCompleted}% of the lectures! You must now pass a 25-question final exam with a score of 70% or higher to unlock your certificate.
+                    {enrollment?.quizAttempts > 0 && ` (Last Score: ${enrollment.quizScore}%, Attempts: ${enrollment.quizAttempts})`}
+                  </p>
+                  <Link 
+                    href={`/classroom/${course.id}/quiz`} 
+                    className="btn-primary" 
+                    style={{ 
+                      padding: '8px 12px', 
+                      fontSize: '12px', 
+                      textAlign: 'center', 
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      gap: '6px',
+                      background: 'linear-gradient(135deg, #fbbf24, #d97706)',
+                      color: '#000',
+                      fontWeight: '700'
+                    }}
+                  >
+                    <Award size={14} /> Take Final Exam
+                  </Link>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -739,8 +797,8 @@ export default function ClassroomClient({ course, initialProgress, currentUser }
                       >
                         {/* Checkbox wrapper */}
                         <div 
-                          onClick={(e) => handleToggleComplete(lec.id, e)} 
-                          style={{ cursor: isStaff ? 'pointer' : 'default', display: 'flex', alignItems: 'center', zIndex: 10 }}
+                          onClick={(e) => canToggleProgress && handleToggleComplete(lec.id, e)} 
+                          style={{ cursor: canToggleProgress ? 'pointer' : 'default', display: 'flex', alignItems: 'center', zIndex: 10 }}
                         >
                           {isCompleted ? (
                             <CheckSquare size={18} style={{ color: 'var(--accent)' }} />

@@ -4,6 +4,11 @@ import styles from './Competitions.module.css';
 
 export const revalidate = 0;
 
+export const metadata = {
+  title: 'InnoTechXperience',
+  description: 'Participate in national design & tech challenges to build your portfolio.',
+};
+
 export default async function InnoTechXperiencePage() {
   const competitions = await prisma.competition.findMany({
     include: {

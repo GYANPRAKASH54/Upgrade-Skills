@@ -1,15 +1,16 @@
 .dashboardHeader {
   padding: 60px 0 40px;
-  background: radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.08) 0%, transparent 40%),
-              radial-gradient(circle at 90% 80%, rgba(0, 242, 254, 0.05) 0%, transparent 40%);
-  border-bottom: 1px solid var(--border-trans);
+  background: transparent;
+  border-bottom: 2px solid var(--border-trans);
   margin-bottom: 40px;
 }
 
 .title {
+  font-family: var(--font-display);
   font-size: 36px;
-  font-weight: 800;
+  font-weight: 700;
   margin-bottom: 8px;
+  color: var(--text-primary);
 }
 
 .subtitle {
@@ -29,6 +30,9 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  background-color: var(--bg-card);
+  border: 2px solid var(--border-trans);
+  border-radius: var(--radius-md);
 }
 
 .statIcon {
@@ -55,41 +59,56 @@
   padding: 12px;
   border-radius: var(--radius-sm);
   background-color: rgba(74, 222, 128, 0.15);
-  color: #4ade80;
+  color: #58cc02;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .statValue {
+  font-family: var(--font-display);
   font-size: 28px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1;
 }
 
 .statLabel {
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--text-secondary);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   margin-top: 4px;
 }
 
 .tabsContainer {
   display: flex;
-  gap: 20px;
-  border-bottom: 1px solid var(--border-trans);
+  gap: 12px;
+  border-bottom: 2px solid var(--border-trans);
   margin-bottom: 30px;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+}
+
+.tabsContainer::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .tabBtn {
   background: none;
   border: none;
   padding: 12px 6px;
+  font-family: var(--font-din-round);
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-secondary);
   cursor: pointer;
-  border-bottom: 2px solid transparent;
+  border-bottom: 3px solid transparent;
   transition: var(--transition-smooth);
+  flex-shrink: 0;
 }
 
 .tabBtn:hover {
@@ -125,6 +144,9 @@
 .tableCard {
   overflow-x: auto;
   padding: 24px;
+  background-color: var(--bg-card);
+  border: 2px solid var(--border-trans);
+  border-radius: var(--radius-md);
 }
 
 .adminTable {
@@ -136,40 +158,37 @@
 
 .th {
   padding: 12px 16px;
-  border-bottom: 1px solid var(--border-trans);
+  border-bottom: 2px solid var(--border-trans);
   color: var(--text-muted);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .tr {
-  border-bottom: 1px solid var(--border-trans);
+  border-bottom: 2px solid var(--border-trans);
   transition: var(--transition-smooth);
 }
 
 .tr:hover {
-  background-color: rgba(255, 255, 255, 0.02);
-}
-
-[data-theme='light'] .tr:hover {
-  background-color: rgba(0, 0, 0, 0.01);
+  background-color: var(--primary-glow);
 }
 
 .td {
   padding: 16px;
   color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .tdHighlight {
   color: var(--text-primary);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .revokeBtn {
   background: none;
-  border: none;
+  border: 2px solid var(--border-trans);
   color: var(--text-muted);
   cursor: pointer;
   padding: 6px;
@@ -183,6 +202,45 @@
 .revokeBtn:hover {
   color: #ff4d4d;
   background-color: rgba(255, 77, 77, 0.1);
+  border-color: #ff4d4d;
+}
+
+.resetBtn {
+  background: none;
+  border: 2px solid var(--border-trans);
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition-smooth);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.resetBtn:hover {
+  color: var(--accent);
+  background-color: var(--accent-glow);
+  border-color: var(--accent);
+}
+
+.resetTestBtn {
+  background: none;
+  border: 2px solid var(--border-trans);
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition-smooth);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.resetTestBtn:hover {
+  color: var(--primary);
+  background-color: var(--primary-glow);
+  border-color: var(--primary);
 }
 
 .searchHeader {
@@ -219,13 +277,17 @@
 .formCard {
   padding: 24px;
   height: fit-content;
+  background-color: var(--bg-card);
+  border: 2px solid var(--border-trans);
+  border-radius: var(--radius-md);
 }
 
 .formTitle {
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 700;
   margin-bottom: 16px;
-  border-bottom: 1px solid var(--border-trans);
+  border-bottom: 2px solid var(--border-trans);
   padding-bottom: 8px;
 }
 
@@ -233,8 +295,8 @@
   width: 100%;
   padding: 12px;
   background-color: var(--bg-input);
-  border: 1px solid var(--border-trans);
-  border-radius: var(--radius-sm);
+  border: 2px solid var(--border-trans);
+  border-radius: var(--radius-inputs);
   color: var(--text-primary);
   font-size: 14px;
   outline: none;
@@ -243,7 +305,7 @@
 }
 
 .selectInput:focus {
-  border-color: var(--primary);
+  border-color: var(--secondary);
 }
 
 .alert {
@@ -254,22 +316,20 @@
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .alertSuccess {
-  background-color: rgba(74, 222, 128, 0.1);
-  border: 1px solid rgba(74, 222, 128, 0.2);
-  color: #4ade80;
+  background-color: var(--primary-glow);
+  border: 2px solid var(--primary);
+  color: var(--primary);
 }
 
 .alertError {
   background-color: rgba(255, 77, 77, 0.1);
-  border: 1px solid rgba(255, 77, 77, 0.2);
+  border: 2px solid #ff4d4d;
   color: #ff4d4d;
 }
-
-/* User Management & Course Creation updates */
 
 .roleBadge {
   display: inline-flex;
@@ -277,45 +337,50 @@
   padding: 4px 10px;
   font-size: 11px;
   font-weight: 700;
-  border-radius: 12px;
+  border-radius: 99px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .roleStudent {
-  background-color: var(--primary-glow);
-  color: var(--primary);
-  border: 1px solid hsla(258, 90%, 66%, 0.2);
+  background-color: rgba(28, 176, 246, 0.1);
+  color: var(--secondary);
+  border: 2px solid var(--secondary);
 }
 
 .roleInstructor {
-  background-color: rgba(249, 115, 22, 0.15);
-  color: #f97316;
-  border: 1px solid rgba(249, 115, 22, 0.2);
+  background-color: var(--primary-glow);
+  color: var(--primary);
+  border: 2px solid var(--primary);
 }
 
 .roleAdmin {
-  background-color: rgba(168, 85, 247, 0.15);
-  color: #a855f7;
-  border: 1px solid rgba(168, 85, 247, 0.2);
-  box-shadow: 0 0 8px rgba(168, 85, 247, 0.25);
+  background-color: var(--accent-glow);
+  color: var(--accent);
+  border: 2px solid var(--accent);
+}
+
+.roleTester {
+  background-color: #fef3c7;
+  color: #d97706;
+  border: 2px solid #d97706;
 }
 
 .roleSelectInline {
   padding: 6px 10px;
   background-color: var(--bg-input);
-  border: 1px solid var(--border-trans);
-  border-radius: var(--radius-sm);
+  border: 2px solid var(--border-trans);
+  border-radius: var(--radius-inputs);
   color: var(--text-primary);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   outline: none;
   cursor: pointer;
   transition: var(--transition-smooth);
 }
 
 .roleSelectInline:focus {
-  border-color: var(--primary);
+  border-color: var(--secondary);
 }
 
 .courseThumbnailMini {
@@ -323,7 +388,7 @@
   height: 44px;
   object-fit: cover;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border-trans);
+  border: 2px solid var(--border-trans);
 }
 
 .courseRow {
@@ -336,8 +401,8 @@
   width: 100%;
   padding: 12px;
   background-color: var(--bg-input);
-  border: 1px solid var(--border-trans);
-  border-radius: var(--radius-sm);
+  border: 2px solid var(--border-trans);
+  border-radius: var(--radius-inputs);
   color: var(--text-primary);
   font-size: 14px;
   outline: none;
@@ -347,7 +412,7 @@
 }
 
 .textareaInput:focus {
-  border-color: var(--primary);
+  border-color: var(--secondary);
 }
 
 .courseCreationContainer {
@@ -363,3 +428,124 @@
   }
 }
 
+.filterControlsBar {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  width: 100%;
+}
+
+.filterSelect {
+  padding: 8px 12px;
+  background-color: var(--bg-input);
+  border: 2px solid var(--border-trans);
+  border-radius: var(--radius-inputs);
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  min-width: 160px;
+  transition: var(--transition-smooth);
+}
+
+.filterSelect:focus {
+  border-color: var(--secondary);
+}
+
+.exportBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: var(--primary-glow);
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  border-radius: var(--radius-buttons);
+  font-family: var(--font-din-round);
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  margin-left: auto;
+}
+
+.exportBtn:hover {
+  filter: brightness(1.08);
+}
+
+@media (max-width: 640px) {
+  .exportBtn {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Enrollment details expanded subgrid */
+.enrollmentDetailsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 768px) {
+  .enrollmentDetailsGrid {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 30px;
+  }
+}
+
+/* General Mobile overrides for Admin Dashboard */
+@media (max-width: 768px) {
+  .dashboardHeader {
+    padding: 30px 0 20px;
+    margin-bottom: 20px;
+  }
+  .title {
+    font-size: 26px;
+  }
+  .subtitle {
+    font-size: 14px;
+  }
+  .statCard {
+    padding: 16px;
+    gap: 12px;
+  }
+  .statValue {
+    font-size: 22px;
+  }
+  .tableCard {
+    padding: 16px;
+  }
+}
+
+.metadataColumn {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.metadataInfo {
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-secondary);
+  align-items: flex-start;
+}
+
+@media (min-width: 768px) {
+  .metadataColumn {
+    align-items: flex-end;
+    text-align: right;
+  }
+  .metadataInfo {
+    align-items: flex-end;
+  }
+}

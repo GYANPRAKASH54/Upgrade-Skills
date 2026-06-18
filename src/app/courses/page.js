@@ -2,8 +2,14 @@ import Link from 'next/link';
 import { prisma } from '@/lib/db';
 import { Search, Star, Frown, BookOpen } from 'lucide-react';
 import styles from './Courses.module.css';
+import SafeImage from '@/components/SafeImage';
 
-export const revalidate = 0;
+export const revalidate = 60; // Cache page at the edge for 60 seconds
+
+export const metadata = {
+  title: 'Courses',
+  description: 'Explore practical courses led by global industry experts.',
+};
 
 export default async function CoursesPage({ searchParams }) {
   const params = await searchParams;
@@ -111,11 +117,17 @@ export default async function CoursesPage({ searchParams }) {
                 {courses.map((course) => (
                   <div key={course.id} className="glass-card" style={{ display: 'flex', flexDirection: 'column', height: '100%', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
                     <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%' }}>
-                      <img src={course.thumbnail} alt={course.title} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <SafeImage 
+                        src={course.thumbnail} 
+                        alt={course.title} 
+                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} 
+                        fallbackSrc="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60"
+                      />
+
                     </div>
                     <div style={{ padding: '20px', display: 'flex', flex: 1, flexDirection: 'column', gap: '10px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span className="badge badge-primary" style={{ fontSize: '10px' }}>Udemy Bestseller</span>
+                        <span className="badge badge-primary" style={{ fontSize: '10px' }}>Bestseller</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--accent)', fontWeight: '600' }}>
                           <Star size={12} fill="var(--accent)" /> 4.9
                         </div>

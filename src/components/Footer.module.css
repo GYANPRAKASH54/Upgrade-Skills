@@ -1,13 +1,13 @@
 .footer {
   background: var(--bg-surface);
-  border-top: 1px solid var(--border-trans);
+  border-top: 2px solid var(--border-trans);
   padding: 60px 0 30px 0;
   margin-top: auto;
 }
 
 .container {
   width: 100%;
-  max-width: 1200px;
+  max-width: var(--page-max-width);
   margin: 0 auto;
   padding: 0 24px;
 }
@@ -39,13 +39,15 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  text-decoration: none;
+  color: var(--text-primary);
 }
 
 .logoIcon {
   width: 28px;
   height: 28px;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  border-radius: 6px;
+  background: var(--primary);
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -55,10 +57,13 @@
 }
 
 .title {
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .links {
@@ -72,16 +77,43 @@
   font-size: 14px;
   color: var(--text-secondary);
   transition: var(--transition-smooth);
+  text-decoration: none;
+  font-weight: 500;
 }
 
 .link:hover {
   color: var(--primary);
-  transform: translateX(4px);
+  text-decoration: underline;
 }
 
 .description {
   font-size: 14px;
   color: var(--text-muted);
+}
+
+.socials {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.socialLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: var(--bg-deep);
+  border: 2px solid var(--border-trans);
+  border-radius: 50%;
+  color: var(--text-muted);
+  transition: var(--transition-smooth);
+}
+
+.socialLink:hover {
+  background-color: var(--primary-glow);
+  color: var(--primary);
+  border-color: var(--primary);
 }
 
 .newsletter {
@@ -99,8 +131,8 @@
   flex: 1;
   padding: 10px 14px;
   background-color: var(--bg-deep);
-  border: 1px solid var(--border-trans);
-  border-radius: var(--radius-sm);
+  border: 2px solid var(--border-trans);
+  border-radius: var(--radius-inputs);
   color: var(--text-primary);
   font-size: 14px;
   outline: none;
@@ -108,11 +140,11 @@
 }
 
 .newsletterInput:focus {
-  border-color: var(--primary);
+  border-color: var(--secondary);
 }
 
 .copyrightSection {
-  border-top: 1px solid var(--border-trans);
+  border-top: 2px solid var(--border-trans);
   padding-top: 30px;
   display: flex;
   justify-content: space-between;

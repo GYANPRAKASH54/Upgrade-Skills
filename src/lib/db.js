@@ -1,21 +1,22 @@
 import { PrismaClient } from '@prisma/client';
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
-import path from 'path';
+import { PrismaPg } from '@prisma/adapter-pg';
+import pg from 'pg';
 
+const { Pool } = pg;
 const globalForPrisma = global;
 
-// Reset global Prisma client in development to pick up newly pushed schema fields (e.g. status)
-if (process.env.NODE_ENV !== 'production' && globalForPrisma.prisma) {
-  try {
-    globalForPrisma.prisma.$disconnect();
-  } catch (e) {}
-  globalForPrisma.prisma = null;
-}
-
 const getPrismaClient = () => {
-  // Use absolute path for dev.db to avoid path resolving issues in Next.js build vs dev mode
-  const dbPath = 'file:' + path.resolve(process.cwd(), 'prisma/dev.db');
-  const adapter = new PrismaBetterSqlite3({ url: dbPath });
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error('DATABASE_URL environment variable is missing.');
+  }
+  const pool = new Pool({
+    connectionString,
+    max: process.env.NODE_ENV === 'production' ? 20 : 4, // Prevents connection limit exhaustion while maintaining performance under load
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000, // Increased timeout to 10s to handle concurrent traffic spikes safely
+  });
+  const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });
 };
 

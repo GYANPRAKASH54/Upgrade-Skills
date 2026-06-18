@@ -1,26 +1,30 @@
 .pageHeader {
   padding: 60px 0 40px 0;
-  background: radial-gradient(circle at 90% 0%, hsla(180, 100%, 48%, 0.08) 0%, transparent 60%);
-  border-bottom: 1px solid var(--border-trans);
+  background: transparent;
+  border-bottom: 2px solid var(--border-trans);
   margin-bottom: 40px;
 }
 
 .title {
+  font-family: var(--font-display);
   font-size: 38px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.03em;
+  color: var(--text-primary);
 }
 
 .description {
-  font-size: 15px;
+  font-size: 16px;
   color: var(--text-secondary);
   margin-top: 8px;
 }
 
 .sectionTitle {
+  font-family: var(--font-display);
   font-size: 24px;
-  font-weight: 800;
+  font-weight: 700;
   margin-bottom: 24px;
+  color: var(--text-primary);
 }
 
 .challengesGrid {
@@ -61,12 +65,12 @@
   aspect-ratio: 21/9;
   object-fit: cover;
   border-radius: var(--radius-md);
-  border: 1px solid var(--border-trans);
+  border: 2px solid var(--border-trans);
 }
 
 .cardBlock {
   background-color: var(--bg-card);
-  border: 1px solid var(--border-trans);
+  border: 2px solid var(--border-trans);
   border-radius: var(--radius-md);
   padding: 30px;
   display: flex;
@@ -75,10 +79,13 @@
 }
 
 .blockTitle {
+  font-family: var(--font-display);
   font-size: 20px;
-  font-weight: 800;
-  border-bottom: 1px solid var(--border-trans);
+  font-weight: 700;
+  border-bottom: 2px solid var(--border-trans);
   padding-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .rulesList {
@@ -94,6 +101,7 @@
   gap: 10px;
   align-items: flex-start;
   color: var(--text-secondary);
+  font-weight: 500;
 }
 
 /* Submissions Grid */
@@ -104,9 +112,9 @@
 }
 
 .galleryCard {
-  background-color: var(--bg-deep);
-  border: 1px solid var(--border-trans);
-  border-radius: var(--radius-sm);
+  background-color: var(--bg-card);
+  border: 2px solid var(--border-trans);
+  border-radius: var(--radius-md);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -115,14 +123,14 @@
 }
 
 .galleryCard:hover {
-  border-color: var(--primary);
-  transform: translateY(-4px);
+  border-color: var(--border-glow);
 }
 
 .galleryThumbnail {
   width: 100%;
   aspect-ratio: 4/3;
   object-fit: cover;
+  border-bottom: 2px solid var(--border-trans);
 }
 
 .galleryBody {
@@ -134,14 +142,16 @@
 }
 
 .galleryTitle {
-  font-size: 14px;
+  font-family: var(--font-display);
+  font-size: 15px;
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .galleryUser {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
+  font-weight: 700;
 }
 
 .galleryFooter {
@@ -150,7 +160,7 @@
   align-items: center;
   margin-top: auto;
   padding-top: 10px;
-  border-top: 1px solid var(--border-trans);
+  border-top: 2px solid var(--border-trans);
 }
 
 .scoreBadge {
@@ -158,8 +168,11 @@
   font-weight: 700;
   color: var(--accent);
   background-color: var(--accent-glow);
-  padding: 2px 8px;
-  border-radius: 12px;
+  padding: 4px 10px;
+  border: 2px solid var(--accent);
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* Submission Form */
@@ -171,6 +184,6 @@
 
 .label {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-secondary);
 }

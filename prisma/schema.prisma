@@ -5,7 +5,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model User {
@@ -14,6 +14,7 @@ model User {
   email        String        @unique
   password     String
   role         String        @default("STUDENT") // STUDENT, INSTRUCTOR, ADMIN
+  headline     String?       @default("Industry Veteran & Academic Expert")
   createdAt    DateTime      @default(now())
   
   // Relations
@@ -24,20 +25,21 @@ model User {
 }
 
 model Course {
-  id           String        @id @default(uuid())
-  title        String
-  subtitle     String
-  description  String
-  price        Float
-  thumbnail    String
-  published    Boolean       @default(false)
-  createdAt    DateTime      @default(now())
+  id            String         @id @default(uuid())
+  title         String
+  subtitle      String
+  description   String
+  price         Float
+  thumbnail     String
+  published     Boolean        @default(false)
+  createdAt     DateTime       @default(now())
   
   // Relations
-  instructorId String
-  instructor   User          @relation("InstructorCourses", fields: [instructorId], references: [id])
-  sections     Section[]
-  enrollments  Enrollment[]
+  instructorId  String
+  instructor    User           @relation("InstructorCourses", fields: [instructorId], references: [id])
+  sections      Section[]
+  enrollments   Enrollment[]
+  quizQuestions QuizQuestion[]
 }
 
 model Section {
@@ -85,6 +87,12 @@ model Enrollment {
   billingZip        String?
   razorpayOrderId   String?
   razorpayPaymentId String?
+
+  // Quiz Stats
+  quizScore     Float?
+  quizPassed    Boolean  @default(false)
+  quizAttempts  Int      @default(0)
+  lastAttemptAt DateTime?
 
   @@unique([studentId, courseId])
 }
@@ -151,5 +159,14 @@ model Question {
   parentId   String?
   parent     Question?  @relation("QuestionReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies    Question[] @relation("QuestionReplies")
+}
+
+model QuizQuestion {
+  id          String   @id @default(uuid())
+  question    String
+  options     String[]
+  answerIndex Int
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
 }
 

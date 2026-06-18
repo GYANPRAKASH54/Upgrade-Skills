@@ -4,8 +4,14 @@ import { prisma } from '@/lib/db';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Award, Trophy, Eye, ExternalLink, Calendar } from 'lucide-react';
+import CertificateButton from '@/components/CertificateButton';
 
 export const revalidate = 0;
+
+export const metadata = {
+  title: 'My Submissions | InnoTechXperience',
+  description: 'Manage and view your challenge entries and scores.',
+};
 
 export default async function MySubmissionsPage() {
   const session = await getServerSession(authOptions);
@@ -90,13 +96,7 @@ export default async function MySubmissionsPage() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#4ade80', fontSize: '12px', fontWeight: '700', justifyContent: 'center' }}>
                           <Award size={14} /> Verified Certificate
                         </div>
-                        <button 
-                          onClick={(e) => { e.preventDefault(); alert('Certificate viewer simulated! Certified by UpgradeSkills.'); }}
-                          className="btn-primary" 
-                          style={{ padding: '8px 12px', fontSize: '12px', width: '100%', background: 'linear-gradient(135deg, #4ade80, var(--accent))' }}
-                        >
-                          View Certificate
-                        </button>
+                        <CertificateButton />
                       </div>
                     ) : (
                       <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Score too low for certificate</span>

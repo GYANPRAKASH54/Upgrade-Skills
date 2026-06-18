@@ -70,9 +70,9 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Lecture not found' }, { status: 404 });
     }
 
-    const isStaff = session.user.role === 'ADMIN' || session.user.role === 'INSTRUCTOR';
+    const canToggle = session.user.role === 'ADMIN' || session.user.role === 'INSTRUCTOR' || session.user.role === 'TESTER';
 
-    if (isStaff && completed !== undefined) {
+    if (canToggle && completed !== undefined) {
       // Staff members can manually toggle completion for testing
       const shouldComplete = completed === true;
       const progress = await prisma.progress.upsert({
@@ -89,13 +89,13 @@ export async function POST(request) {
           studentId: session.user.id,
           lectureId,
           completed: shouldComplete,
-          watchTime: shouldComplete ? Math.round(lecture.duration * 0.7) : 0,
+          watchTime: shouldComplete ? Math.round(lecture.duration * 0.9) : 0,
         },
       });
       return NextResponse.json({ success: true, progress });
     } else {
       // Standard student progress tracking
-      const increment = watchTimeIncrement ? Math.min(Math.max(0, parseInt(watchTimeIncrement)), 10) : 0;
+      const increment = watchTimeIncrement ? Math.min(Math.max(0, parseInt(watchTimeIncrement)), 20) : 0;
 
       // Find existing progress
       const existingProgress = await prisma.progress.findUnique({
@@ -109,9 +109,9 @@ export async function POST(request) {
 
       const newWatchTime = (existingProgress?.watchTime || 0) + increment;
       
-      // Complete lecture if watchTime is >= 70% of duration (or fallback 10s if duration is 0)
+      // Complete lecture if watchTime is >= 90% of duration (or fallback 10s if duration is 0)
       const targetDuration = lecture.duration > 0 ? lecture.duration : 10;
-      const threshold = Math.round(targetDuration * 0.7);
+      const threshold = Math.round(targetDuration * 0.9);
       
       const shouldComplete = existingProgress?.completed || newWatchTime >= threshold;
 

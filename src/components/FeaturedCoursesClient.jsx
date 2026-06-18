@@ -71,27 +71,36 @@ export default function FeaturedCoursesClient({ courses }) {
       ) : (
         <div className={`${styles.grid} ${styles.fadeInAnimate}`}>
           {filteredCourses.map((course) => (
-            <div key={course.id} className={styles.card}>
-              <div className={styles.cardImageWrapper}>
-                <img src={course.thumbnail} alt={course.title} className={styles.cardImage} />
+            <div key={course.id} className={styles.card} style={{ borderRadius: '4px', border: '1px solid var(--border-trans)', boxShadow: 'var(--shadow-sm)', backgroundColor: 'var(--bg-card)' }}>
+              <div className={styles.cardImageWrapper} style={{ overflow: 'hidden' }}>
+                <img 
+                  src={course.thumbnail} 
+                  alt={course.title} 
+                  className={styles.cardImage} 
+                  style={{ borderTopLeftRadius: '4px', borderTopRightRadius: '4px' }}
+                  onError={(e) => {
+                    e.target.src = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60';
+                  }}
+                />
               </div>
-              <div className={styles.cardContent}>
+
+              <div className={styles.cardContent} style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span className="badge badge-primary" style={{ textTransform: 'uppercase', fontSize: '10px' }}>
+                  <span className="badge badge-primary" style={{ textTransform: 'uppercase', fontSize: '10px', backgroundColor: 'var(--color-charcoal-surface)', color: 'var(--color-skill-green)', border: '1px solid var(--border-trans)' }}>
                     {getCourseCategory(course) === 'tech' ? 'Coding' : getCourseCategory(course) === 'business' ? 'Business' : 'Design'}
                   </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--accent)', fontWeight: '600' }}>
-                    <Star size={14} fill="var(--accent)" /> 4.9
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--color-warning-amber)', fontWeight: '600' }}>
+                    <Star size={14} fill="var(--color-warning-amber)" stroke="var(--color-warning-amber)" /> 4.9
                   </div>
                 </div>
-                <h3 className={styles.cardTitle}>{course.title}</h3>
-                <div className={styles.cardInstructor}>
+                <h3 className={styles.cardTitle} style={{ fontSize: '16px', fontWeight: '700', lineHeight: '1.3' }}>{course.title}</h3>
+                <div className={styles.cardInstructor} style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                   By {course.instructor?.name || 'Expert Instructor'}
                 </div>
-                <p className={styles.cardDescription}>{course.subtitle}</p>
-                <div className={styles.cardFooter}>
-                  <div className={styles.price}>₹{course.price}</div>
-                  <Link href={`/courses/${course.id}`} className="btn-secondary" style={{ padding: '8px 16px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <p className={styles.cardDescription} style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{course.subtitle}</p>
+                <div className={styles.cardFooter} style={{ borderTop: '1px solid var(--border-trans)', paddingTop: '12px' }}>
+                  <div className={styles.price} style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)' }}>₹{course.price}</div>
+                  <Link href={`/courses/${course.id}`} className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px' }}>
                     View Details
                   </Link>
                 </div>

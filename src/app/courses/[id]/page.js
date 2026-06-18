@@ -3,11 +3,29 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { notFound } from 'next/navigation';
 import { Star, Shield, Award, Users, BookOpen } from 'lucide-react';
-import CurriculumAccordion from './CurriculumAccordion';
-import CourseSidebarCard from './CourseSidebarCard';
+import dynamic from 'next/dynamic';
+
+const CurriculumAccordion = dynamic(() => import('./CurriculumAccordion'), {
+  loading: () => <div style={{ minHeight: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>Loading course curriculum...</div>,
+});
+const CourseSidebarCard = dynamic(() => import('./CourseSidebarCard'), {
+  loading: () => <div style={{ minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>Loading checkout options...</div>,
+});
 import styles from './CourseDetail.module.css';
 
 export const revalidate = 0;
+
+export async function generateMetadata({ params }) {
+  const { id } = await params;
+  const course = await prisma.course.findUnique({
+    where: { id },
+    select: { title: true, subtitle: true }
+  });
+  return {
+    title: course ? course.title : 'Course Details',
+    description: course ? course.subtitle : 'Explore course content.'
+  };
+}
 
 export default async function CourseDetailPage({ params }) {
   const { id } = await params;
@@ -21,6 +39,7 @@ export default async function CourseDetailPage({ params }) {
         select: {
           name: true,
           email: true,
+          headline: true,
         },
       },
       sections: {
@@ -66,7 +85,7 @@ export default async function CourseDetailPage({ params }) {
         <div className={`${styles.headerGrid} container`}>
           <div>
             <div className={styles.badgeList}>
-              <span className="badge badge-primary">Udemy Top Seller</span>
+              <span className="badge badge-primary">Top Seller</span>
               <span className="badge badge-accent">Best Rated</span>
             </div>
             <h1 className={styles.title}>{course.title}</h1>
@@ -137,7 +156,7 @@ export default async function CourseDetailPage({ params }) {
                 </div>
                 <div>
                   <h4 style={{ fontSize: '18px', fontWeight: '700' }}>{course.instructor.name}</h4>
-                  <p style={{ fontSize: '13px', color: 'var(--primary)', fontWeight: '600' }}>Industry Veteran & Academic Expert</p>
+                  <p style={{ fontSize: '13px', color: 'var(--primary)', fontWeight: '600' }}>{course.instructor.headline || 'Industry Veteran & Academic Expert'}</p>
                   <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>{course.instructor.email}</p>
                 </div>
               </div>

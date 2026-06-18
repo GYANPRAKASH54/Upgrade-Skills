@@ -26,6 +26,8 @@ function SignInForm() {
         setError('Authentication failed. Please check your credentials.');
       } else if (oauthError === 'SessionRequired') {
         setError('Please sign in to access this page.');
+      } else if (oauthError === 'AccessDenied') {
+        setError('Access Denied. You do not have permission to access that page, or your session needs to be refreshed. Please sign in with an authorized account.');
       } else {
         setError('An error occurred during sign-in.');
       }
@@ -53,8 +55,7 @@ function SignInForm() {
         }
         setLoading(false);
       } else {
-        router.push(callbackUrl);
-        router.refresh();
+        window.location.href = callbackUrl;
       }
     } catch (err) {
       console.error(err);
@@ -115,7 +116,16 @@ function SignInForm() {
 
         {/* Password */}
         <div className={styles.formGroup}>
-          <label className={styles.label}>Password</label>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <label className={styles.label} style={{ marginBottom: 0 }}>Password</label>
+            <Link 
+              href="/auth/forgot-password" 
+              className={styles.footerLink} 
+              style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.04em' }}
+            >
+              Forgot?
+            </Link>
+          </div>
           <div style={{ position: 'relative' }}>
             <input
               type="password"

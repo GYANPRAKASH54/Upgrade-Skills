@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useCart } from '@/components/Providers';
 import { CreditCard, Shield, CheckCircle, ShieldAlert } from 'lucide-react';
+import styles from './Checkout.module.css';
 
 function CheckoutForm() {
   const router = useRouter();
@@ -121,7 +122,7 @@ function CheckoutForm() {
         key: orderData.keyId,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: 'UpgradeSkills',
+        name: 'Upgrade Skills',
         description: orderData.courseTitle,
         image: orderData.courseThumbnail,
         order_id: orderData.orderId,
@@ -185,7 +186,7 @@ function CheckoutForm() {
   };
 
   if (loading) {
-    return <div style={{ color: 'white', textAlign: 'center', padding: '60px' }}>Loading checkout portal...</div>;
+    return <div style={{ color: 'var(--text-primary)', textAlign: 'center', padding: '60px' }}>Loading checkout portal...</div>;
   }
 
   if (success) {
@@ -194,7 +195,7 @@ function CheckoutForm() {
         <CheckCircle size={56} style={{ color: '#4ade80' }} />
         <h2 style={{ fontSize: '24px', fontWeight: '800' }}> Enrolled Confirmed!</h2>
         <p style={{ fontSize: '15px', color: 'var(--text-secondary)' }}>
-          You have successfully enrolled in <span style={{ fontWeight: 700, color: 'white' }}>{course?.title}</span>. Access your video classroom dashboard immediately.
+          You have successfully enrolled in <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{course?.title}</span>. Access your video classroom dashboard immediately.
         </p>
         <div style={{ 
           padding: '12px 16px', 
@@ -221,33 +222,33 @@ function CheckoutForm() {
   }
 
   return (
-    <div style={{ maxWidth: '800px', margin: '40px auto', padding: '0 24px 80px 0', display: 'grid', gridTemplateColumns: '1fr 340px', gap: '40px' }}>
+    <div className={styles.container}>
       {/* Left pane: Details */}
-      <div>
-        <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '20px' }}>Secure Checkout</h2>
+      <div className={styles.leftPane}>
+        <h2 className={styles.title}>Secure Checkout</h2>
         
         {error && (
-          <div style={{ backgroundColor: 'rgba(255, 77, 77, 0.1)', border: '1px solid rgba(255, 77, 77, 0.2)', color: '#ff4d4d', padding: '16px', borderRadius: 'var(--radius-sm)', fontSize: '14px', marginBottom: '20px' }}>
+          <div className={styles.errorBanner}>
             <ShieldAlert size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
             {error}
           </div>
         )}
 
-        <div className="glass-card" style={{ padding: '24px', display: 'flex', gap: '16px', alignItems: 'center' }}>
-          <img src={course?.thumbnail} alt={course?.title} style={{ width: '100px', height: '60px', objectFit: 'cover', borderRadius: '4px' }} />
-          <div>
-            <h3 style={{ fontSize: '16px', fontWeight: '700' }}>{course?.title}</h3>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>Instructor: {course?.instructor?.name}</p>
+        <div className={`glass-card ${styles.courseCard}`}>
+          <img src={course?.thumbnail} alt={course?.title} className={styles.courseThumbnail} />
+          <div className={styles.courseDetails}>
+            <h3 className={styles.courseTitle}>{course?.title}</h3>
+            <p className={styles.courseInstructor}>Instructor: {course?.instructor?.name}</p>
           </div>
         </div>
 
         {/* Billing Information Form */}
-        <div className="glass-card" style={{ padding: '24px', marginTop: '24px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '16px', borderBottom: '1px solid var(--border-trans)', paddingBottom: '8px' }}>Billing Information</h3>
+        <div className={`glass-card ${styles.billingCard}`}>
+          <h3 className={styles.billingTitle}>Billing Information</h3>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}>Full Name *</label>
+          <div className={styles.formRow}>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Full Name *</label>
               <input
                 type="text"
                 placeholder="Billing Name"
@@ -257,8 +258,8 @@ function CheckoutForm() {
                 required
               />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}>Phone Number *</label>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Phone Number *</label>
               <input
                 type="text"
                 placeholder="Phone Number"
@@ -270,8 +271,8 @@ function CheckoutForm() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '16px' }}>
-            <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}>Street Address *</label>
+          <div className={styles.formRowSingle}>
+            <label className={styles.label}>Street Address *</label>
             <input
               type="text"
               placeholder="e.g. Flat 101, Building Name, Street Road"
@@ -282,9 +283,9 @@ function CheckoutForm() {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginTop: '16px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}>City *</label>
+          <div className={styles.formRow3}>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>City *</label>
               <input
                 type="text"
                 placeholder="City"
@@ -294,8 +295,8 @@ function CheckoutForm() {
                 required
               />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}>State *</label>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>State *</label>
               <input
                 type="text"
                 placeholder="State"
@@ -305,8 +306,8 @@ function CheckoutForm() {
                 required
               />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}>Zip Code *</label>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Zip Code *</label>
               <input
                 type="text"
                 placeholder="e.g. 110001"
@@ -319,21 +320,21 @@ function CheckoutForm() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '24px', color: 'var(--text-muted)', fontSize: '13px' }}>
-          <Shield size={16} style={{ color: 'var(--accent)' }} />
-          <span>SSL Secure 256-bit encrypted checkout via Razorpay sandbox.</span>
+        <div className={styles.securityNote}>
+          <Shield size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+          <span>SSL Secure 256-bit encrypted checkout via Razorpay.</span>
         </div>
       </div>
 
       {/* Right pane: Summary & Button */}
-      <div className="glass-card" style={{ padding: '24px', height: 'fit-content' }}>
-        <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '16px', borderBottom: '1px solid var(--border-trans)', paddingBottom: '10px' }}>Summary</h3>
+      <div className={`glass-card ${styles.summaryCard}`}>
+        <h3 className={styles.summaryTitle}>Summary</h3>
         
-        <div style={{ display: 'flex', justifyItems: 'center', justifyContent: 'space-between', marginBottom: '12px', fontSize: '14px', color: 'var(--text-secondary)' }}>
+        <div className={styles.summaryRow}>
           <span>Price:</span>
           <span>₹{course?.price}</span>
         </div>
-        <div style={{ display: 'flex', justifyItems: 'center', justifyContent: 'space-between', marginBottom: '24px', fontSize: '15px', fontWeight: '700' }}>
+        <div className={styles.summaryTotalRow}>
           <span>Total:</span>
           <span className="text-gradient">₹{course?.price}</span>
         </div>
@@ -341,8 +342,7 @@ function CheckoutForm() {
         <button 
           onClick={handlePayment}
           disabled={paymentLoading}
-          className="btn-primary" 
-          style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, var(--accent), var(--primary))' }}
+          className={`btn-primary ${styles.payButton}`}
         >
           <CreditCard size={18} /> {paymentLoading ? 'Processing...' : 'Pay with Razorpay'}
         </button>
@@ -354,7 +354,7 @@ function CheckoutForm() {
 export default function CheckoutPage() {
   return (
     <div style={{ minHeight: 'calc(100vh - 160px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
-      <Suspense fallback={<div style={{ color: 'white' }}>Loading checkout form...</div>}>
+      <Suspense fallback={<div style={{ color: 'var(--text-primary)' }}>Loading checkout form...</div>}>
         <CheckoutForm />
       </Suspense>
     </div>

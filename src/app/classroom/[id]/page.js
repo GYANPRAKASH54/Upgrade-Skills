@@ -2,9 +2,36 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { redirect } from 'next/navigation';
-import ClassroomClient from './ClassroomClient';
+import dynamic from 'next/dynamic';
+
+const ClassroomClient = dynamic(() => import('./ClassroomClient'), {
+  loading: () => (
+    <div style={{
+      minHeight: '80vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: 'var(--text-muted)'
+    }}>
+      <div className="loadingDot" style={{ width: '20px', height: '20px', backgroundColor: 'var(--primary)', borderRadius: '50%' }}></div>
+      <span style={{ marginTop: '12px', fontWeight: '700' }}>Loading classroom environment...</span>
+    </div>
+  )
+});
 
 export const revalidate = 0;
+
+export async function generateMetadata({ params }) {
+  const { id: courseId } = await params;
+  const course = await prisma.course.findUnique({
+    where: { id: courseId },
+    select: { title: true }
+  });
+  return {
+    title: course ? course.title : 'Classroom'
+  };
+}
 
 export default async function ClassroomPage({ params }) {
   const { id: courseId } = await params;
@@ -34,23 +61,18 @@ export default async function ClassroomPage({ params }) {
   }
 
   // 2. Verify enrollment security guard (Admin or Instructor of course bypassed)
-  let isAuthorized = false;
-
-  if (session.user.role === 'ADMIN' || course.instructorId === session.user.id) {
-    isAuthorized = true;
-  } else {
-    const enrollment = await prisma.enrollment.findUnique({
-      where: {
-        studentId_courseId: {
-          studentId: session.user.id,
-          courseId,
-        },
+  const enrollment = await prisma.enrollment.findUnique({
+    where: {
+      studentId_courseId: {
+        studentId: session.user.id,
+        courseId,
       },
-    });
-    isAuthorized = !!enrollment;
-  }
+    },
+  });
 
-  if (!isAuthorized) {
+  const isAdminOrInstructor = session.user.role === 'ADMIN' || course.instructorId === session.user.id;
+  
+  if (!enrollment && !isAdminOrInstructor) {
     // If not enrolled, redirect back to course landing details page to purchase!
     redirect(`/courses/${courseId}?error=NotEnrolled`);
   }
@@ -73,5 +95,12 @@ export default async function ClassroomPage({ params }) {
 
   const completedLectureIds = progressList.map((p) => p.lectureId);
 
-  return <ClassroomClient course={course} initialProgress={completedLectureIds} currentUser={session.user} />;
+  return (
+    <ClassroomClient 
+      course={course} 
+      initialProgress={completedLectureIds} 
+      currentUser={session.user} 
+      enrollment={enrollment}
+    />
+  );
 }

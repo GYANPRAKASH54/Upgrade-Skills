@@ -25,8 +25,8 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'User ID and Role are required.' }, { status: 400 });
     }
 
-    if (!['STUDENT', 'INSTRUCTOR', 'ADMIN'].includes(role)) {
-      return NextResponse.json({ error: 'Invalid role. Must be STUDENT, INSTRUCTOR, or ADMIN.' }, { status: 400 });
+    if (!['STUDENT', 'INSTRUCTOR', 'ADMIN', 'TESTER'].includes(role)) {
+      return NextResponse.json({ error: 'Invalid role. Must be STUDENT, INSTRUCTOR, ADMIN, or TESTER.' }, { status: 400 });
     }
 
     // Check if user exists

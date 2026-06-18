@@ -6,8 +6,13 @@ import { prisma } from './db';
 export const authOptions = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || 'mock_google_client_id.apps.googleusercontent.com',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'mock_google_client_secret',
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      authorization: {
+        params: {
+          prompt: 'select_account',
+        },
+      },
     }),
     CredentialsProvider({
       name: 'Credentials',
@@ -74,6 +79,19 @@ export const authOptions = {
         token.id = user.id;
         token.role = user.role;
       }
+      
+      // Dynamically fetch user role from DB to support OAuth and database updates
+      if (token?.email) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: token.email },
+          select: { id: true, role: true },
+        });
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.role = dbUser.role;
+        }
+      }
+      
       return token;
     },
     async session({ session, token }) {

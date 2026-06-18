@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /classroom/
+Disallow: /profile
+
+Sitemap: https://upgradeskills.co.in/sitemap.xml

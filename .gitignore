@@ -50,3 +50,5 @@ next-env.d.ts
 dev.db
 server.log
 build.log
+
+.vercel

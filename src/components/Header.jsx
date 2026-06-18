@@ -29,10 +29,10 @@ export default function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const cartRef = useRef(null);
   const userMenuRef = useRef(null);
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState('light');
   // Load theme from localStorage on mount
   useEffect(() => {
-    const savedTheme = localStorage.getItem('upgradeskills_theme') || 'dark';
+    const savedTheme = localStorage.getItem('upgradeskills_theme') || 'light';
     setTheme(savedTheme);
     document.documentElement.setAttribute('data-theme', savedTheme);
   }, []);
@@ -52,8 +52,18 @@ export default function Header() {
         setShowUserMenu(false);
       }
     }
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        setShowCart(false);
+        setShowUserMenu(false);
+      }
+    }
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -77,11 +87,19 @@ export default function Header() {
     <header className={styles.header}>
       <div className={styles.container}>
         {/* Logo */}
-        <Link href="/" className={styles.logo}>
+        <Link 
+          href="/" 
+          className={styles.logo}
+          draggable="false"
+          onDragStart={(e) => e.preventDefault()}
+          onContextMenu={(e) => e.preventDefault()}
+        >
           <img 
             src="/logo.png" 
-            alt="UpgradeSkills Logo" 
-            style={{ height: '36px', objectFit: 'contain' }} 
+            alt="Upgrade Skills Logo" 
+            className={styles.logoImg}
+            draggable="false"
+            onContextMenu={(e) => e.preventDefault()}
           />
         </Link>
         {/* Search */}
@@ -89,7 +107,7 @@ export default function Header() {
           <Search size={18} className={styles.searchIcon} />
           <input
             type="text"
-            placeholder="Search for business plans, code, tech, design..."
+            placeholder="Search for courses, business plans, coding, photography, design..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className={styles.searchInput}
@@ -127,6 +145,8 @@ export default function Header() {
               onClick={() => setShowCart(!showCart)} 
               className={styles.cartButton}
               aria-label="Shopping Cart"
+              aria-haspopup="true"
+              aria-expanded={showCart}
             >
               <ShoppingCart size={22} />
               {cart.length > 0 && <span className={styles.cartCount}>{cart.length}</span>}
@@ -153,6 +173,7 @@ export default function Header() {
                           <button 
                             onClick={() => removeFromCart(item.id)} 
                             className={styles.removeCartItem}
+                            aria-label={`Remove ${item.title} from cart`}
                           >
                             <Trash2 size={16} />
                           </button>
@@ -182,6 +203,17 @@ export default function Header() {
               <div 
                 className={styles.avatar} 
                 onClick={() => setShowUserMenu(!showUserMenu)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setShowUserMenu(!showUserMenu);
+                  }
+                }}
+                aria-haspopup="true"
+                aria-expanded={showUserMenu}
+                aria-label="User profile menu"
               >
                 {getInitials(session.user.name)}
               </div>
@@ -194,9 +226,17 @@ export default function Header() {
                       session.user.role === 'INSTRUCTOR' ? styles.roleInstructor : 
                       styles.roleStudent
                     }`}>
-                      {session.user.role}
+                      {session.user.role === 'STUDENT' ? 'LEARNER' : session.user.role}
                     </span>
                   </div>
+                  <Link 
+                    href="/profile" 
+                    onClick={() => setShowUserMenu(false)}
+                    className={`${styles.userDropdownLink} ${isActive('/profile') ? styles.activeDropdownLink : ''}`}
+                  >
+                    <User size={16} />
+                    Edit Profile
+                  </Link>
                   <Link 
                     href="/classroom" 
                     onClick={() => setShowUserMenu(false)}
@@ -239,6 +279,16 @@ export default function Header() {
                       signOut({ callbackUrl: '/' });
                     }} 
                     className={`${styles.userDropdownLink} ${styles.signOutBtn}`}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setShowUserMenu(false);
+                        signOut({ callbackUrl: '/' });
+                      }
+                    }}
+                    aria-label="Sign Out"
                   >
                     <LogOut size={16} />
                     Sign Out
@@ -247,18 +297,16 @@ export default function Header() {
               )}
             </div>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className={styles.authButtons}>
               <Link 
                 href="/auth/signin" 
-                className="btn-secondary" 
-                style={{ padding: '8px 16px', fontSize: '14px' }}
+                className={`btn-secondary ${styles.authBtn}`}
               >
                 Log In
               </Link>
               <Link 
                 href="/auth/signup" 
-                className="btn-primary" 
-                style={{ padding: '8px 16px', fontSize: '14px' }}
+                className={`btn-primary ${styles.authBtn}`}
               >
                 Sign Up
               </Link>

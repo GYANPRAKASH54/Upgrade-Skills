@@ -20,7 +20,10 @@ import {
   Plus,
   MessageSquare,
   Trophy,
-  Calendar
+  Calendar,
+  Download,
+  RefreshCw,
+  RotateCcw
 } from 'lucide-react';
 import styles from './Admin.module.css';
 
@@ -56,9 +59,46 @@ export default function AdminDashboardClient({
   const [accessSearch, setAccessSearch] = useState('');
   const [qaSearch, setQaSearch] = useState('');
   const [expandedEnrollment, setExpandedEnrollment] = useState(null);
+  
+  // Sorting and Filtering states for purchases
+  const [courseFilter, setCourseFilter] = useState('');
+  const [sortBy, setSortBy] = useState('date_desc');
 
   const toggleEnrollmentDetails = (id) => {
     setExpandedEnrollment(expandedEnrollment === id ? null : id);
+  };
+  
+  // Client-side Excel export helper
+  const downloadExcel = () => {
+    const headers = ['Student Name', 'Student Email', 'Course Name', 'Purchase Date', 'Purchase Time', 'Amount(₹)', 'Payment ID', 'Order ID', 'Billing Details'];
+    
+    const rows = filteredEnrollments.map(e => [
+      e.student?.name || '',
+      e.student?.email || '',
+      e.course?.title || '',
+      new Date(e.joinedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+      new Date(e.joinedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      e.billingName ? `₹${e.course?.price}` : 'Manual/Free',
+      e.razorpayPaymentId || 'N/A',
+      e.razorpayOrderId || 'N/A',
+      e.billingName ? `${e.billingName}, Phone: ${e.billingPhone}, Address: ${e.billingAddress}, ${e.billingCity}, ${e.billingState} - ${e.billingZip}` : 'Manually Enrolled'
+    ]);
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(val => `"${val.replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+    
+    // Add UTF-8 BOM so Excel opens it with correct character encodings
+    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `course_purchases_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
   
   // Manual enrollment form state
@@ -90,18 +130,44 @@ export default function AdminDashboardClient({
     return c.title.toLowerCase().includes(query) || instructorName.toLowerCase().includes(query);
   });
 
-  const filteredEnrollments = enrollments.filter((enrollment) => {
-    const studentName = enrollment.student?.name || '';
-    const studentEmail = enrollment.student?.email || '';
-    const courseTitle = enrollment.course?.title || '';
-    const query = accessSearch.toLowerCase();
-    
-    return (
-      studentName.toLowerCase().includes(query) ||
-      studentEmail.toLowerCase().includes(query) ||
-      courseTitle.toLowerCase().includes(query)
-    );
-  });
+  const filteredEnrollments = enrollments
+    .filter((enrollment) => {
+      const studentName = enrollment.student?.name || '';
+      const studentEmail = enrollment.student?.email || '';
+      const courseTitle = enrollment.course?.title || '';
+      const query = accessSearch.toLowerCase();
+      
+      const matchesSearch = (
+        studentName.toLowerCase().includes(query) ||
+        studentEmail.toLowerCase().includes(query) ||
+        courseTitle.toLowerCase().includes(query)
+      );
+
+      const matchesCourse = courseFilter ? enrollment.courseId === courseFilter : true;
+
+      return matchesSearch && matchesCourse;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'date_desc') {
+        return new Date(b.joinedAt) - new Date(a.joinedAt);
+      }
+      if (sortBy === 'date_asc') {
+        return new Date(a.joinedAt) - new Date(b.joinedAt);
+      }
+      if (sortBy === 'name_asc') {
+        return (a.student?.name || '').localeCompare(b.student?.name || '');
+      }
+      if (sortBy === 'name_desc') {
+        return (b.student?.name || '').localeCompare(a.student?.name || '');
+      }
+      if (sortBy === 'course_asc') {
+        return (a.course?.title || '').localeCompare(b.course?.title || '');
+      }
+      if (sortBy === 'course_desc') {
+        return (b.course?.title || '').localeCompare(a.course?.title || '');
+      }
+      return 0;
+    });
 
   const filteredQuestions = questions.filter((q) => {
     const query = qaSearch.toLowerCase();
@@ -321,6 +387,66 @@ export default function AdminDashboardClient({
     } catch (error) {
       console.error(error);
       setMessage({ type: 'error', text: 'An unexpected error occurred while revoking access.' });
+    }
+  };
+
+  // Handle reset student progress
+  const handleResetProgress = async (enrollmentId, studentName, courseTitle) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to reset all course progress and quiz certification scores for ${studentName} in "${courseTitle}"?`
+    );
+    if (!confirmed) return;
+
+    setMessage({ type: '', text: '' });
+
+    try {
+      const res = await fetch('/api/admin/enrollments', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enrollmentId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage({ type: 'error', text: data.error || 'Failed to reset course progress.' });
+      } else {
+        setMessage({ type: 'success', text: `Successfully reset course progress for ${studentName} in "${courseTitle}"!` });
+        setEnrollments(enrollments.map((item) => item.id === enrollmentId ? data.enrollment : item));
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage({ type: 'error', text: 'An unexpected error occurred while resetting progress.' });
+    }
+  };
+
+  // Handle reset student exam attempts
+  const handleResetTest = async (enrollmentId, studentName, courseTitle) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to reset only the Exam/Test attempts and scores for ${studentName} in "${courseTitle}"?\n(Their lecture watch progress will be preserved.)`
+    );
+    if (!confirmed) return;
+
+    setMessage({ type: '', text: '' });
+
+    try {
+      const res = await fetch('/api/admin/enrollments', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enrollmentId, resetType: 'test' }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage({ type: 'error', text: data.error || 'Failed to reset exam attempts.' });
+      } else {
+        setMessage({ type: 'success', text: `Successfully reset exam attempts for ${studentName} in "${courseTitle}"!` });
+        setEnrollments(enrollments.map((item) => item.id === enrollmentId ? data.enrollment : item));
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage({ type: 'error', text: 'An unexpected error occurred while resetting exam attempts.' });
     }
   };
 
@@ -649,7 +775,9 @@ export default function AdminDashboardClient({
                             ? styles.roleAdmin 
                             : user.role === 'INSTRUCTOR' 
                               ? styles.roleInstructor 
-                              : styles.roleStudent
+                              : user.role === 'TESTER'
+                                ? styles.roleTester
+                                : styles.roleStudent
                         }`}>
                           {user.role}
                         </span>
@@ -663,6 +791,7 @@ export default function AdminDashboardClient({
                           <option value="STUDENT">Student</option>
                           <option value="INSTRUCTOR">Instructor</option>
                           <option value="ADMIN">Admin</option>
+                          <option value="TESTER">Tester</option>
                         </select>
                       </td>
                       <td className={styles.td}>
@@ -850,17 +979,56 @@ export default function AdminDashboardClient({
             {/* Left side: Enrollments List */}
             <div className={`${styles.tableCard} glass-card`}>
               <div className={styles.searchHeader}>
-                <h3 style={{ fontSize: '18px', fontWeight: '700' }}>Active Student Access Rights</h3>
-                <div className={styles.searchInputWrapper}>
-                  <Search size={16} className={styles.searchIcon} />
-                  <input
-                    type="text"
-                    placeholder="Search by student name, email, or course..."
-                    value={accessSearch}
-                    onChange={(e) => setAccessSearch(e.target.value)}
-                    className="form-input"
-                    style={{ paddingLeft: '42px', fontSize: '13px' }}
-                  />
+                <h3 style={{ fontSize: '18px', fontWeight: '700' }}>Course Purchases & Access</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+                  <div className={styles.searchInputWrapper}>
+                    <Search size={16} className={styles.searchIcon} />
+                    <input
+                      type="text"
+                      placeholder="Search by student name, email, or course..."
+                      value={accessSearch}
+                      onChange={(e) => setAccessSearch(e.target.value)}
+                      className="form-input"
+                      style={{ paddingLeft: '42px', fontSize: '13px' }}
+                    />
+                  </div>
+                  
+                  {/* Sorting, filtering and excel download controls */}
+                  <div className={styles.filterControlsBar}>
+                    <select
+                      value={courseFilter}
+                      onChange={(e) => setCourseFilter(e.target.value)}
+                      className={styles.filterSelect}
+                    >
+                      <option value="">All Courses</option>
+                      {courses.map((course) => (
+                        <option key={course.id} value={course.id}>
+                          {course.title}
+                        </option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className={styles.filterSelect}
+                    >
+                      <option value="date_desc">Purchase Date: Newest</option>
+                      <option value="date_asc">Purchase Date: Oldest</option>
+                      <option value="name_asc">Student Name: A-Z</option>
+                      <option value="name_desc">Student Name: Z-A</option>
+                      <option value="course_asc">Course Title: A-Z</option>
+                      <option value="course_desc">Course Title: Z-A</option>
+                    </select>
+
+                    <button 
+                      onClick={downloadExcel} 
+                      className={styles.exportBtn}
+                      type="button"
+                    >
+                      <Download size={15} /> Export to Excel
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -874,8 +1042,9 @@ export default function AdminDashboardClient({
                     <thead>
                       <tr>
                         <th className={styles.th}>Student</th>
-                        <th className={styles.th}>Email Address</th>
                         <th className={styles.th}>Course Enrolled</th>
+                        <th className={styles.th}>Amount</th>
+                        <th className={styles.th}>Purchase Date & Time</th>
                         <th className={styles.th} style={{ textAlign: 'center' }}>Revoke</th>
                       </tr>
                     </thead>
@@ -895,13 +1064,36 @@ export default function AdminDashboardClient({
                                   <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                                     {isExpanded ? '▼' : '▶'}
                                   </span>
-                                  {enrollment.student?.name}
+                                  <div>
+                                    <div style={{ fontWeight: '600' }}>{enrollment.student?.name}</div>
+                                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{enrollment.student?.email}</div>
+                                  </div>
                                 </div>
                               </td>
-                              <td className={styles.td}>{enrollment.student?.email}</td>
-                              <td className={styles.td} style={{ color: 'var(--text-primary)' }}>{enrollment.course?.title}</td>
+                              <td className={styles.td} style={{ color: 'var(--text-primary)', fontWeight: '500' }}>{enrollment.course?.title}</td>
+                              <td className={styles.td} style={{ fontWeight: '700', color: enrollment.billingName ? '#4ade80' : 'var(--text-muted)' }}>
+                                {enrollment.billingName ? `₹${enrollment.course?.price}` : 'Free'}
+                              </td>
+                              <td className={styles.td} style={{ fontSize: '13px' }}>
+                                <div>{new Date(enrollment.joinedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</div>
+                                <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{new Date(enrollment.joinedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
+                              </td>
                               <td className={styles.td} onClick={(e) => e.stopPropagation()}>
-                                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                                  <button
+                                    onClick={() => handleResetTest(enrollment.id, enrollment.student?.name, enrollment.course?.title)}
+                                    className={styles.resetTestBtn}
+                                    title="Reset Test Attempts Only"
+                                  >
+                                    <RotateCcw size={16} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleResetProgress(enrollment.id, enrollment.student?.name, enrollment.course?.title)}
+                                    className={styles.resetBtn}
+                                    title="Reset Student Progress"
+                                  >
+                                    <RefreshCw size={16} />
+                                  </button>
                                   <button
                                     onClick={() => handleRevokeAccess(enrollment.id, enrollment.student?.name, enrollment.course?.title)}
                                     className={styles.revokeBtn}
@@ -914,8 +1106,8 @@ export default function AdminDashboardClient({
                             </tr>
                             {isExpanded && (
                               <tr style={{ backgroundColor: 'rgba(255, 255, 255, 0.01)' }}>
-                                <td colSpan="4" style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-trans)' }}>
-                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+                                <td colSpan="5" style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-trans)' }}>
+                                  <div className={styles.enrollmentDetailsGrid}>
                                     <div>
                                       <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: '10px' }}>
                                         Billing Information
@@ -934,11 +1126,25 @@ export default function AdminDashboardClient({
                                         </div>
                                       )}
                                     </div>
-                                    <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                                      <div style={{ fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '6px', color: 'var(--text-secondary)', alignItems: 'flex-end' }}>
+                                    <div>
+                                      <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: '10px' }}>
+                                        Exam / Certification Stats
+                                      </h4>
+                                      <div style={{ fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '6px', color: 'var(--text-secondary)' }}>
+                                        <div><strong>Attempts Used:</strong> {enrollment.quizAttempts} / 2</div>
+                                        <div><strong>Best Score:</strong> {enrollment.quizScore !== null && enrollment.quizScore !== undefined ? `${enrollment.quizScore}%` : 'N/A'}</div>
+                                        <div><strong>Status:</strong> {enrollment.quizPassed ? <span style={{ color: '#4ade80', fontWeight: '700' }}>PASSED</span> : <span style={{ color: '#f87171', fontWeight: '700' }}>NOT PASSED</span>}</div>
+                                        {enrollment.lastAttemptAt && (
+                                          <div><strong>Last Attempt:</strong> {new Date(enrollment.lastAttemptAt).toLocaleString()}</div>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className={styles.metadataColumn}>
+                                      <div className={styles.metadataInfo}>
                                         <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--primary)', textTransform: 'uppercase', marginBottom: '4px' }}>
                                           Payment Metadata
                                         </h4>
+                                        <div><strong>Amount Paid:</strong> {enrollment.billingName ? `₹${enrollment.course?.price}` : 'Manual/Free'}</div>
                                         <div><strong>Gateway:</strong> Razorpay Sandbox</div>
                                         <div><strong>Payment ID:</strong> {enrollment.razorpayPaymentId || 'N/A'}</div>
                                         <div><strong>Order ID:</strong> {enrollment.razorpayOrderId || 'N/A'}</div>

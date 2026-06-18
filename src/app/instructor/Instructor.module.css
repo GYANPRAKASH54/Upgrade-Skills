@@ -1,6 +1,6 @@
 .dashboardHeader {
   padding: 40px 0;
-  border-bottom: 1px solid var(--border-trans);
+  border-bottom: 2px solid var(--border-trans);
   margin-bottom: 30px;
   display: flex;
   justify-content: space-between;
@@ -8,8 +8,10 @@
 }
 
 .title {
+  font-family: var(--font-display);
   font-size: 32px;
-  font-weight: 800;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .subtitle {
@@ -33,7 +35,7 @@
 
 .statCard {
   background-color: var(--bg-card);
-  border: 1px solid var(--border-trans);
+  border: 2px solid var(--border-trans);
   border-radius: var(--radius-md);
   padding: 24px;
   display: flex;
@@ -42,22 +44,27 @@
 }
 
 .statVal {
+  font-family: var(--font-display);
   font-size: 28px;
-  font-weight: 800;
-  color: var(--text-primary);
+  font-weight: 700;
+  color: var(--primary);
 }
 
 .statLabel {
+  font-family: var(--font-din-round);
   font-size: 13px;
-  color: var(--text-muted);
-  font-weight: 600;
+  color: var(--text-secondary);
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .sectionTitle {
+  font-family: var(--font-display);
   font-size: 22px;
   font-weight: 700;
   margin-bottom: 20px;
+  color: var(--text-primary);
 }
 
 .coursesGrid {
@@ -69,18 +76,24 @@
 
 .courseItem {
   background-color: var(--bg-card);
-  border: 1px solid var(--border-trans);
+  border: 2px solid var(--border-trans);
   border-radius: var(--radius-md);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   height: 100%;
+  transition: var(--transition-smooth);
+}
+
+.courseItem:hover {
+  border-color: var(--border-glow);
 }
 
 .courseThumbnail {
   width: 100%;
   aspect-ratio: 16/9;
   object-fit: cover;
+  border-bottom: 2px solid var(--border-trans);
 }
 
 .courseBody {
@@ -92,6 +105,7 @@
 }
 
 .courseTitle {
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 700;
   height: 44px;
@@ -104,7 +118,7 @@
   align-items: center;
   margin-top: auto;
   padding-top: 14px;
-  border-top: 1px solid var(--border-trans);
+  border-top: 2px solid var(--border-trans);
 }
 
 /* Edit Course Curriculum Page */
@@ -123,7 +137,7 @@
 
 .editorSection {
   background-color: var(--bg-card);
-  border: 1px solid var(--border-trans);
+  border: 2px solid var(--border-trans);
   border-radius: var(--radius-md);
   padding: 30px;
   display: flex;
@@ -139,19 +153,19 @@
 }
 
 .builderSectionCard {
-  border: 1px solid var(--border-trans);
-  border-radius: var(--radius-sm);
+  border: 2px solid var(--border-trans);
+  border-radius: var(--radius-md);
   background-color: var(--bg-deep);
   overflow: hidden;
 }
 
 .builderSectionHeader {
   padding: 16px 20px;
-  background-color: hsla(0, 0%, 100%, 0.02);
+  background-color: var(--bg-card);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--border-trans);
+  border-bottom: 2px solid var(--border-trans);
 }
 
 .sectionInput {
@@ -159,14 +173,15 @@
   border: none;
   color: var(--text-primary);
   font-weight: 700;
+  font-family: var(--font-display);
   font-size: 15px;
   width: 70%;
   outline: none;
-  border-bottom: 1px dashed var(--text-muted);
+  border-bottom: 2px dashed var(--text-muted);
 }
 
 .sectionInput:focus {
-  border-bottom-color: var(--primary);
+  border-bottom-color: var(--secondary);
 }
 
 .builderLecturesList {
@@ -177,9 +192,9 @@
 }
 
 .builderLectureCard {
-  padding: 12px 16px;
+  padding: 16px;
   background-color: var(--bg-card);
-  border: 1px solid var(--border-trans);
+  border: 2px solid var(--border-trans);
   border-radius: var(--radius-sm);
   display: flex;
   flex-direction: column;
@@ -192,32 +207,141 @@
   gap: 10px;
 }
 
+@media (max-width: 576px) {
+  .lectureInputGroup {
+    grid-template-columns: 1fr;
+  }
+}
+
 .lectureSubInput {
-  padding: 6px 10px;
+  padding: 8px 12px;
   font-size: 13px;
   background-color: var(--bg-input);
-  border: 1px solid var(--border-trans);
-  border-radius: 4px;
+  border: 2px solid var(--border-trans);
+  border-radius: var(--radius-inputs);
   color: var(--text-primary);
   outline: none;
+  transition: var(--transition-smooth);
 }
 
 .lectureSubInput:focus {
-  border-color: var(--primary);
+  border-color: var(--secondary);
 }
 
 .deleteBtn {
   background: none;
-  border: none;
+  border: 2px solid var(--border-trans);
   color: #ff4d4d;
   cursor: pointer;
   padding: 6px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: var(--transition-smooth);
 }
 
 .deleteBtn:hover {
   background-color: rgba(255, 77, 77, 0.15);
+  border-color: #ff4d4d;
+}
+
+/* Instructor Dashboard Header Mobile override */
+@media (max-width: 640px) {
+  .dashboardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 0;
+  }
+  .title {
+    font-size: 26px;
+  }
+}
+
+/* Editor Section responsive padding */
+@media (max-width: 768px) {
+  .editorSection {
+    padding: 16px;
+  }
+  .editorGrid {
+    gap: 20px;
+  }
+}
+
+/* Editor Sub-Header */
+.editorHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 30px 0;
+}
+
+@media (max-width: 640px) {
+  .editorHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 20px 0;
+  }
+}
+
+/* Price & Status responsive grid */
+.priceStatusGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 480px) {
+  .priceStatusGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.statusBtnWrapper {
+  display: flex;
+  gap: 10px;
+  height: 100%;
+  align-items: center;
+}
+
+/* Thumbnail Inputs Flex Wrap */
+.thumbnailInputs {
+  display: flex;
+  gap: 10px;
+}
+
+@media (max-width: 576px) {
+  .thumbnailInputs {
+    flex-direction: column;
+  }
+}
+
+/* Modal Responsiveness */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modalContent {
+  width: 100%;
+  max-width: 440px;
+  padding: 24px;
+  background: var(--bg-card);
+}
+
+@media (min-width: 640px) {
+  .modalContent {
+    padding: 30px;
+  }
 }

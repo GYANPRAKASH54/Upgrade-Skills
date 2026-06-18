@@ -1,15 +1,16 @@
 .pageHeader {
   padding: 60px 0 40px;
-  background: radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.08) 0%, transparent 40%),
-              radial-gradient(circle at 90% 80%, rgba(0, 242, 254, 0.05) 0%, transparent 40%);
-  border-bottom: 1px solid var(--border-trans);
+  background: transparent;
+  border-bottom: 2px solid var(--border-trans);
   margin-bottom: 40px;
 }
 
 .title {
+  font-family: var(--font-display);
   font-size: 36px;
-  font-weight: 800;
+  font-weight: 700;
   margin-bottom: 8px;
+  color: var(--text-primary);
 }
 
 .description {
@@ -29,6 +30,9 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  background-color: var(--bg-card);
+  border: 2px solid var(--border-trans);
+  border-radius: var(--radius-md);
 }
 
 .statIcon {
@@ -52,14 +56,18 @@
 }
 
 .statValue {
+  font-family: var(--font-display);
   font-size: 28px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1;
 }
 
 .statLabel {
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--text-secondary);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   margin-top: 4px;
 }
 
@@ -87,13 +95,21 @@
   flex-direction: column;
   height: 100%;
   border-radius: var(--radius-md);
+  border: 2px solid var(--border-trans);
+  background-color: var(--bg-card);
   overflow: hidden;
+  transition: var(--transition-smooth);
+}
+
+.courseCard:hover {
+  border-color: var(--border-glow);
 }
 
 .thumbnailWrapper {
   position: relative;
   width: 100%;
-  padding-top: 56.25%; /* 16:9 Aspect Ratio */
+  padding-top: 56.25%;
+  border-bottom: 2px solid var(--border-trans);
 }
 
 .thumbnail {
@@ -114,7 +130,8 @@
 }
 
 .courseTitle {
-  font-size: 16px;
+  font-family: var(--font-display);
+  font-size: 17px;
   font-weight: 700;
   line-height: 1.4;
   height: 44px;
@@ -127,6 +144,7 @@
 .instructor {
   font-size: 13px;
   color: var(--text-muted);
+  font-weight: 700;
 }
 
 .progressContainer {
@@ -135,29 +153,30 @@
   flex-direction: column;
   gap: 6px;
   padding-top: 12px;
-  border-top: 1px solid var(--border-trans);
+  border-top: 2px solid var(--border-trans);
 }
 
 .progressLabel {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-secondary);
 }
 
 .progressBarTrack {
   width: 100%;
-  height: 6px;
-  background-color: var(--bg-input);
-  border-radius: 3px;
+  height: 12px;
+  background-color: var(--bg-deep);
+  border: 2px solid var(--border-trans);
+  border-radius: 99px;
   overflow: hidden;
 }
 
 .progressBarFill {
   height: 100%;
-  background: linear-gradient(90deg, var(--primary), var(--accent));
-  border-radius: 3px;
+  background: var(--primary);
+  border-radius: 99px;
   transition: width 0.4s ease-out;
 }
 
@@ -172,12 +191,12 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background-color: rgba(74, 222, 128, 0.1);
-  color: #4ade80;
-  border: 1px solid rgba(74, 222, 128, 0.2);
+  background-color: var(--primary-glow);
+  color: var(--primary);
+  border: 2px solid var(--primary);
   padding: 4px 10px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   border-radius: 20px;
 }
 
@@ -188,4 +207,7 @@
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  background-color: var(--bg-card);
+  border: 2px solid var(--border-trans);
+  border-radius: var(--radius-md);
 }

@@ -105,7 +105,15 @@ export default function InstructorDashboardClient({ initialCourses, instructorNa
           <div className={styles.coursesGrid}>
             {courses.map((course) => (
               <div key={course.id} className={styles.courseItem}>
-                <img src={course.thumbnail} alt={course.title} className={styles.courseThumbnail} />
+                <img 
+                  src={course.thumbnail} 
+                  alt={course.title} 
+                  className={styles.courseThumbnail} 
+                  onError={(e) => {
+                    e.target.src = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60';
+                  }}
+                />
+
                 <div className={styles.courseBody}>
                   <h3 className={styles.courseTitle}>{course.title}</h3>
                   <div style={{ display: 'flex', gap: '8px' }}>
@@ -142,8 +150,8 @@ export default function InstructorDashboardClient({ initialCourses, instructorNa
 
       {/* Create Course Modal */}
       {showCreateModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="glass-card" style={{ width: '100%', maxWidth: '440px', padding: '30px', background: 'var(--bg-card)' }}>
+        <div className={styles.modalOverlay}>
+          <div className={`glass-card ${styles.modalContent}`}>
             <h3 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '16px' }}>Create New Course</h3>
             <form onSubmit={handleCreateCourse} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>

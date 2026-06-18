@@ -8,6 +8,17 @@ import styles from '../Competitions.module.css';
 
 export const revalidate = 0;
 
+export async function generateMetadata({ params }) {
+  const { id } = await params;
+  const competition = await prisma.competition.findUnique({
+    where: { id },
+    select: { title: true }
+  });
+  return {
+    title: competition ? competition.title : 'Competition Details'
+  };
+}
+
 export default async function CompetitionDetailPage({ params }) {
   const { id } = await params;
   const session = await getServerSession(authOptions);

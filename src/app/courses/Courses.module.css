@@ -1,18 +1,20 @@
 .pageHeader {
   padding: 60px 0 40px 0;
-  background: radial-gradient(circle at 10% 0%, hsla(258, 90%, 66%, 0.08) 0%, transparent 50%);
-  border-bottom: 1px solid var(--border-trans);
+  background: transparent;
+  border-bottom: 2px solid var(--border-trans);
   margin-bottom: 40px;
 }
 
 .title {
+  font-family: var(--font-display);
   font-size: 36px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.03em;
+  color: var(--text-primary);
 }
 
 .description {
-  font-size: 15px;
+  font-size: 16px;
   color: var(--text-secondary);
   margin-top: 8px;
 }
@@ -44,38 +46,50 @@
 }
 
 .filterTitle {
-  font-size: 16px;
+  font-family: var(--font-display);
+  font-size: 17px;
   font-weight: 700;
   color: var(--text-primary);
-  border-bottom: 1px solid var(--border-trans);
+  border-bottom: 2px solid var(--border-trans);
   padding-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .categoryList {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   list-style: none;
 }
 
 .categoryItem {
-  font-size: 14px;
+  display: block;
+  font-family: var(--font-din-round);
+  font-size: 15px;
   color: var(--text-secondary);
   cursor: pointer;
-  padding: 6px 12px;
+  padding: 10px 16px;
   border-radius: var(--radius-sm);
   transition: var(--transition-smooth);
+  font-weight: 700;
+  text-decoration: none;
 }
 
 .categoryItem:hover {
-  background-color: var(--bg-card);
-  color: var(--text-primary);
+  background-color: var(--primary-glow);
+  color: var(--primary);
 }
 
 .categoryActive {
-  background-color: var(--primary-glow);
-  color: var(--primary);
-  font-weight: 600;
+  background-color: var(--primary);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.categoryActive:hover {
+  background-color: var(--primary);
+  color: #ffffff;
 }
 
 .searchSummary {
@@ -99,5 +113,5 @@
   gap: 16px;
   background-color: var(--bg-card);
   border-radius: var(--radius-md);
-  border: 1px solid var(--border-trans);
+  border: 2px solid var(--border-trans);
 }

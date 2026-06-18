@@ -1,7 +1,7 @@
 .pageLayout {
   display: grid;
   grid-template-columns: 1fr 340px;
-  min-height: calc(100vh - 80px); /* Fill screen minus header */
+  min-height: calc(100vh - 80px);
   background-color: var(--bg-deep);
 }
 
@@ -26,8 +26,8 @@
   background-color: #000;
   border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--border-trans);
+  box-shadow: none;
+  border: 2px solid var(--border-trans);
 }
 
 .videoElement {
@@ -46,7 +46,7 @@
 .tabsHeader {
   display: flex;
   gap: 12px;
-  border-bottom: 1px solid var(--border-trans);
+  border-bottom: 2px solid var(--border-trans);
   padding-bottom: 12px;
 }
 
@@ -54,9 +54,12 @@
   background: none;
   border: none;
   color: var(--text-secondary);
+  font-family: var(--font-din-round);
   font-size: 15px;
-  font-weight: 600;
-  padding: 8px 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 10px 20px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: var(--transition-smooth);
@@ -70,6 +73,7 @@
 .activeTabBtn {
   color: var(--primary);
   background-color: var(--primary-glow);
+  border: 2px solid var(--primary);
 }
 
 .tabContent {
@@ -78,7 +82,7 @@
 
 /* Sidebar Outline */
 .sidebar {
-  border-left: 1px solid var(--border-trans);
+  border-left: 2px solid var(--border-trans);
   background-color: var(--bg-surface);
   display: flex;
   flex-direction: column;
@@ -87,12 +91,14 @@
 
 .sidebarHeader {
   padding: 24px;
-  border-bottom: 1px solid var(--border-trans);
+  border-bottom: 2px solid var(--border-trans);
 }
 
 .sidebarTitle {
-  font-size: 18px;
-  font-weight: 800;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .outlineAccordion {
@@ -101,12 +107,12 @@
 }
 
 .sectionBlock {
-  border-bottom: 1px solid var(--border-trans);
+  border-bottom: 2px solid var(--border-trans);
 }
 
 .sectionHeader {
-  padding: 16px 20px;
-  background-color: hsla(0, 0%, 100%, 0.01);
+  padding: 18px 20px;
+  background-color: var(--bg-card);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -115,12 +121,14 @@
 }
 
 .sectionHeader:hover {
-  background-color: hsla(0, 0%, 100%, 0.03);
+  background-color: var(--primary-glow);
 }
 
 .sectionTitle {
+  font-family: var(--font-display);
   font-size: 14px;
   font-weight: 700;
+  color: var(--text-primary);
 }
 
 .lecturesList {
@@ -130,11 +138,11 @@
 }
 
 .lectureRow {
-  padding: 12px 20px;
+  padding: 14px 20px;
   display: flex;
   align-items: center;
   gap: 12px;
-  border-bottom: 1px solid hsla(0, 0%, 100%, 0.03);
+  border-bottom: 1px solid var(--border-trans);
   cursor: pointer;
   transition: var(--transition-smooth);
 }
@@ -146,13 +154,14 @@
 .lectureActive {
   background-color: var(--primary-glow);
   color: var(--primary);
+  border-left: 4px solid var(--primary);
 }
 
 .lectureCheckbox {
   width: 18px;
   height: 18px;
-  border-radius: 4px;
-  border: 1px solid var(--border-trans);
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border-trans);
   cursor: pointer;
   accent-color: var(--primary);
 }
@@ -165,21 +174,22 @@
 }
 
 .lectureTitleText {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 13.5px;
+  font-weight: 700;
 }
 
 .lectureMeta {
-  font-size: 11px;
+  font-size: 11.5px;
   color: var(--text-muted);
+  font-weight: 700;
 }
 
 /* Discussion tab */
 .discussionPost {
-  padding: 16px;
-  border-radius: var(--radius-sm);
+  padding: 20px;
+  border-radius: var(--radius-md);
   background-color: var(--bg-card);
-  border: 1px solid var(--border-trans);
+  border: 2px solid var(--border-trans);
   margin-bottom: 16px;
 }
 
@@ -189,6 +199,7 @@
   font-size: 12px;
   color: var(--text-muted);
   margin-bottom: 8px;
+  font-weight: 700;
 }
 
 .postUser {
@@ -204,22 +215,21 @@
   padding: 2px 6px;
   font-size: 10px;
   font-weight: 700;
-  border-radius: 4px;
+  border-radius: 99px;
   text-transform: uppercase;
   margin-left: 8px;
 }
 
 .roleInstructor {
-  background-color: rgba(249, 115, 22, 0.15);
-  color: #f97316;
-  border: 1px solid rgba(249, 115, 22, 0.2);
+  background-color: var(--primary-glow);
+  color: var(--primary);
+  border: 2px solid var(--primary);
 }
 
 .roleAdmin {
-  background-color: rgba(168, 85, 247, 0.15);
-  color: #a855f7;
-  border: 1px solid rgba(168, 85, 247, 0.2);
-  box-shadow: 0 0 4px rgba(168, 85, 247, 0.1);
+  background-color: var(--accent-glow);
+  color: var(--accent);
+  border: 2px solid var(--accent);
 }
 
 /* Threaded replies styles */
@@ -241,24 +251,24 @@
 }
 
 .replyPost {
-  padding: 12px 16px;
+  padding: 14px 18px;
   border-radius: var(--radius-sm);
-  background-color: hsla(0, 0%, 100%, 0.015);
-  border: 1px solid var(--border-trans);
+  background-color: var(--bg-deep);
+  border: 2px solid var(--border-trans);
 }
 
 .replyActionBtn {
   background: none;
-  border: none;
-  color: var(--text-muted);
+  border: 2px solid var(--border-trans);
+  color: var(--text-secondary);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 4px;
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   transition: var(--transition-smooth);
   margin-top: 8px;
 }
@@ -266,14 +276,15 @@
 .replyActionBtn:hover {
   color: var(--primary);
   background-color: var(--primary-glow);
+  border-color: var(--primary);
 }
 
 .replyForm {
   margin-top: 10px;
-  padding: 12px;
+  padding: 16px;
   border-radius: var(--radius-sm);
-  background-color: hsla(0, 0%, 100%, 0.01);
-  border: 1px solid var(--border-trans);
+  background-color: var(--bg-card);
+  border: 2px solid var(--border-trans);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -283,18 +294,18 @@
   width: 100%;
   min-height: 60px;
   background-color: var(--bg-deep);
-  border: 1px solid var(--border-trans);
+  border: 2px solid var(--border-trans);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  padding: 8px 12px;
-  font-size: 13px;
+  padding: 10px 14px;
+  font-size: 14px;
   resize: vertical;
+  outline: none;
+  transition: var(--transition-smooth);
 }
 
 .replyTextarea:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 1px var(--primary-glow);
+  border-color: var(--secondary);
 }
 
 .replyFormActions {
@@ -305,22 +316,22 @@
 
 .deleteActionBtn {
   background: none;
-  border: none;
-  color: hsla(0, 100%, 65%, 0.7);
+  border: 2px solid var(--border-trans);
+  color: #ff4d4d;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 4px;
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   transition: var(--transition-smooth);
 }
 
 .deleteActionBtn:hover {
-  color: #ff4a4a;
-  background-color: rgba(255, 74, 74, 0.1);
+  background-color: rgba(255, 77, 77, 0.08);
+  border-color: #ff4d4d;
 }
 
 /* Custom Confirm Modal */
@@ -330,8 +341,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(10, 10, 12, 0.75);
-  backdrop-filter: blur(10px);
+  background-color: rgba(19, 31, 36, 0.85);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -342,11 +353,11 @@
 .modalCard {
   width: 90%;
   max-width: 440px;
-  background: linear-gradient(135deg, rgba(20, 20, 25, 0.85), rgba(15, 15, 18, 0.95));
-  border: 1px solid rgba(255, 74, 74, 0.25);
+  background: var(--bg-card);
+  border: 2px solid #ff4d4d;
   border-radius: var(--radius-md);
   padding: 24px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 74, 74, 0.05);
+  box-shadow: none;
   animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   display: flex;
   flex-direction: column;
@@ -366,29 +377,30 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  background-color: rgba(255, 77, 77, 0.1);
+  color: #ff4d4d;
+  border: 2px solid #ff4d4d;
 }
 
 .modalTitle {
-  font-size: 18px;
+  font-family: var(--font-display);
+  font-size: 19px;
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .modalBody {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-secondary);
   line-height: 1.5;
 }
 
 .modalSnippet {
   font-style: italic;
-  background-color: hsla(0, 0%, 100%, 0.03);
-  border: 1px solid var(--border-trans);
+  background-color: var(--bg-deep);
+  border: 2px solid var(--border-trans);
   padding: 8px 12px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   margin-top: 8px;
   color: var(--text-primary);
   display: block;
@@ -412,37 +424,11 @@
   to { transform: scale(1); opacity: 1; }
 }
 
-/* Accordion sections styling override */
-.sectionBlock {
-  border-bottom: 1px solid var(--border-trans);
-}
-
-.sectionHeader {
-  padding: 16px 20px;
-  background-color: rgba(255, 255, 255, 0.015);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  transition: var(--transition-smooth);
-}
-
-.sectionHeader:hover {
-  background-color: rgba(255, 255, 255, 0.035);
-}
-
 .sectionTitleBlock {
   display: flex;
   flex-direction: column;
   gap: 2px;
   text-align: left;
-}
-
-.sectionTitle {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1.4;
 }
 
 .sectionMeta {
@@ -466,38 +452,8 @@
   color: var(--primary);
 }
 
-.lecturesList {
-  display: flex;
-  flex-direction: column;
-  background-color: rgba(0, 0, 0, 0.15);
-  overflow: hidden;
-  max-height: 0;
-  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
 .lecturesListExpanded {
-  max-height: 2000px; /* Arbitrary high value to allow expansion */
-}
-
-.lectureRow {
-  padding: 14px 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
-  cursor: pointer;
-  position: relative;
-  transition: var(--transition-smooth);
-  text-align: left;
-}
-
-.lectureRow:hover {
-  background-color: rgba(255, 255, 255, 0.025);
-}
-
-.lectureActive {
-  background: linear-gradient(90deg, var(--primary-glow), transparent);
-  color: var(--primary);
+  max-height: 2000px;
 }
 
 .lectureActive::before {
@@ -506,25 +462,6 @@
   left: 0;
   top: 0;
   bottom: 0;
-  width: 3px;
-  background: linear-gradient(180deg, var(--primary), var(--accent));
-  box-shadow: 0 0 8px var(--primary);
+  width: 4px;
+  background: var(--primary);
 }
-
-.lectureDetails {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  text-align: left;
-}
-
-.lectureTitleText {
-  font-size: 12.5px;
-  font-weight: 600;
-  line-height: 1.4;
-}
-
-
-
-

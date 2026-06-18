@@ -18,7 +18,7 @@ const TESTIMONIALS = [
     name: 'Rohan Mehta',
     role: 'Co-Founder, SolarGrid Tech',
     image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    quote: 'Drafting our startup business plan with mentorship from IIM alumni on UpgradeSkills was a turning point. We were able to structure our financial models correctly and raise our pre-seed funding last month.',
+    quote: 'Drafting our startup business plan with mentorship from IIM alumni on Upgrade Skills was a turning point. We were able to structure our financial models correctly and raise our pre-seed funding last month.',
     stars: 5,
   },
   {

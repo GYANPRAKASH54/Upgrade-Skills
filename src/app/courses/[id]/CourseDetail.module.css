@@ -1,7 +1,7 @@
 .headerSection {
   padding: 60px 0;
-  background: linear-gradient(135deg, var(--bg-surface), var(--bg-card));
-  border-bottom: 1px solid var(--border-trans);
+  background: transparent;
+  border-bottom: 2px solid var(--border-trans);
   transition: var(--transition-smooth);
 }
 
@@ -25,8 +25,9 @@
 }
 
 .title {
+  font-family: var(--font-display);
   font-size: 38px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.2;
   color: var(--text-primary);
@@ -46,6 +47,7 @@
   margin-top: 24px;
   font-size: 14px;
   color: var(--text-muted);
+  font-weight: 700;
 }
 
 .ratingCol {
@@ -83,10 +85,13 @@
 }
 
 .blockTitle {
+  font-family: var(--font-display);
   font-size: 22px;
-  font-weight: 800;
-  border-bottom: 1px solid var(--border-trans);
+  font-weight: 700;
+  border-bottom: 2px solid var(--border-trans);
   padding-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .description {
@@ -103,8 +108,8 @@
 }
 
 .accordionItem {
-  border: 1px solid var(--border-trans);
-  border-radius: var(--radius-sm);
+  border: 2px solid var(--border-trans);
+  border-radius: var(--radius-md);
   background-color: var(--bg-card);
   overflow: hidden;
 }
@@ -115,21 +120,22 @@
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  background-color: hsla(0, 0%, 100%, 0.02);
+  background-color: var(--bg-card);
   transition: var(--transition-smooth);
 }
 
 .accordionHeader:hover {
-  background-color: hsla(0, 0%, 100%, 0.04);
+  background-color: var(--primary-glow);
 }
 
 .accordionTitle {
-  font-size: 16px;
+  font-family: var(--font-display);
+  font-size: 17px;
   font-weight: 700;
 }
 
 .accordionContent {
-  border-top: 1px solid var(--border-trans);
+  border-top: 2px solid var(--border-trans);
   display: flex;
   flex-direction: column;
 }
@@ -142,6 +148,11 @@
   font-size: 14px;
   color: var(--text-secondary);
   transition: var(--transition-smooth);
+  border-bottom: 1px solid var(--border-trans);
+}
+
+.lectureRow:last-child {
+  border-bottom: none;
 }
 
 .lectureRow:hover {
@@ -153,12 +164,13 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  font-weight: 700;
 }
 
 /* Sidebar Floating Buy Box */
 .sidebarCard {
   background: var(--bg-card);
-  border: 1px solid var(--border-trans);
+  border: 2px solid var(--border-trans);
   border-radius: var(--radius-md);
   padding: 24px;
   display: flex;
@@ -166,18 +178,20 @@
   gap: 20px;
   position: sticky;
   top: 100px;
-  box-shadow: var(--shadow-lg);
+  box-shadow: none;
 }
 
 .sidebarThumbnail {
   width: 100%;
   border-radius: var(--radius-sm);
   object-fit: cover;
+  border: 2px solid var(--border-trans);
 }
 
 .priceText {
+  font-family: var(--font-display);
   font-size: 32px;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--accent);
 }
 
@@ -194,4 +208,5 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  font-weight: 500;
 }

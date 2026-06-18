@@ -2,10 +2,31 @@ import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import AdminDashboardClient from './AdminDashboardClient';
 import styles from './Admin.module.css';
+import dynamic from 'next/dynamic';
+
+const AdminDashboardClient = dynamic(() => import('./AdminDashboardClient'), {
+  loading: () => (
+    <div style={{
+      minHeight: '80vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: 'var(--text-muted)'
+    }}>
+      <div className="loadingDot" style={{ width: '20px', height: '20px', backgroundColor: 'var(--primary)', borderRadius: '50%' }}></div>
+      <span style={{ marginTop: '12px', fontWeight: '700' }}>Loading administration dashboard...</span>
+    </div>
+  )
+});
 
 export const revalidate = 0;
+
+export const metadata = {
+  title: 'Admin Dashboard',
+  description: 'Manage users, courses, and platform operations.',
+};
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions);
@@ -47,7 +68,7 @@ export default async function AdminPage() {
         select: { name: true, email: true },
       },
       course: {
-        select: { title: true },
+        select: { title: true, price: true },
       },
     },
     orderBy: { joinedAt: 'desc' },

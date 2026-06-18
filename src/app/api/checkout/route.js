@@ -6,10 +6,11 @@ import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { sendEmail } from '@/lib/email';
 
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_mockkeyid123',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || 'mockkeysecret456',
+  key_id: process.env.RAZORPAY_KEY_ID || '',
+  key_secret: process.env.RAZORPAY_KEY_SECRET || '',
 });
 
 export async function POST(request) {
@@ -67,7 +68,7 @@ export async function POST(request) {
         orderId: order.id,
         amount: order.amount,
         currency: order.currency,
-        keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_mockkeyid123',
+        keyId: process.env.RAZORPAY_KEY_ID || '',
         courseTitle: course.title,
         courseThumbnail: course.thumbnail,
       });
@@ -93,7 +94,7 @@ export async function POST(request) {
 
       // Verify the Razorpay signature
       const text = razorpay_order_id + '|' + razorpay_payment_id;
-      const keySecret = process.env.RAZORPAY_KEY_SECRET || 'mockkeysecret456';
+      const keySecret = process.env.RAZORPAY_KEY_SECRET || '';
       
       const generated_signature = crypto
         .createHmac('sha256', keySecret)
@@ -120,114 +121,83 @@ export async function POST(request) {
         },
       });
 
-      // Generate Course Bill Invoice HTML
+      // Generate Course Bill Invoice HTML Reference (served dynamically)
       try {
-        const invoicesDir = path.resolve(process.cwd(), 'public/invoices');
-        if (!fs.existsSync(invoicesDir)) {
-          fs.mkdirSync(invoicesDir, { recursive: true });
-        }
-
         const invoiceId = enrollment.id;
-        const invoiceDate = new Date().toLocaleDateString();
         const invoiceNum = `US-${invoiceId.substring(0, 8).toUpperCase()}`;
+        const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+        const invoiceUrl = `${baseUrl}/invoices/invoice_${invoiceId}.html`;
 
-        const invoiceHtml = `<!DOCTYPE html>
+        const subject = `Your Course Invoice Bill for ${course.title} (#${invoiceNum})`;
+        const htmlContent = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Invoice - UpgradeSkills</title>
+  <title>Enrollment Confirmation - Upgrade Skills</title>
   <style>
-    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; line-height: 1.5; padding: 40px; background-color: #f9f9f9; }
-    .invoice-box { max-width: 800px; margin: auto; padding: 30px; border: 1px solid #eee; box-shadow: 0 0 10px rgba(0, 0, 0, 0.05); background: #fff; border-radius: 8px; }
-    .header { display: flex; justify-content: space-between; border-bottom: 2px solid #7c3aed; padding-bottom: 20px; margin-bottom: 20px; }
-    .logo-title { font-size: 28px; font-weight: 800; color: #7c3aed; }
-    .invoice-title { font-size: 24px; font-weight: 700; text-align: right; }
-    .details { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 30px; }
-    .section-title { font-size: 12px; text-transform: uppercase; color: #999; font-weight: 700; margin-bottom: 8px; }
-    .info { font-size: 14px; }
-    .invoice-table { width: 100%; border-collapse: collapse; text-align: left; margin-bottom: 30px; }
-    .invoice-table th { padding: 12px; border-bottom: 2px solid #eee; background: #fcfcfc; color: #666; font-size: 13px; font-weight: 700; }
-    .invoice-table td { padding: 16px 12px; border-bottom: 1px solid #eee; font-size: 14px; }
-    .totals { text-align: right; font-size: 16px; margin-bottom: 40px; }
-    .totals .amount { font-size: 22px; font-weight: 800; color: #7c3aed; margin-top: 6px; }
-    .footer { text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 20px; margin-top: 20px; }
+    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #3c3c3c; line-height: 1.6; padding: 20px; background-color: #f9f9f9; margin: 0; }
+    .email-container { max-width: 600px; margin: auto; background: #ffffff; border: 2px solid #e5e5e5; border-radius: 12px; box-shadow: 0 4px 0 #e5e5e5; overflow: hidden; }
+    .header { background-color: #7c3aed; padding: 30px; text-align: center; color: white; }
+    .logo { font-size: 26px; font-weight: 800; margin: 0 0 10px 0; }
+    .badge { background: rgba(255,255,255,0.2); border-radius: 99px; padding: 4px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: inline-block; }
+    .content { padding: 30px; }
+    .headline { font-size: 20px; font-weight: 800; color: #3c3c3c; margin: 0 0 16px 0; }
+    .receipt-details { border: 2px solid #e5e5e5; border-radius: 12px; padding: 20px; background: #fafafa; margin: 20px 0; }
+    .detail-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+    .detail-label { color: #777777; }
+    .detail-value { font-weight: 700; color: #3c3c3c; }
+    .btn { display: inline-block; padding: 12px 24px; background-color: #7c3aed; color: white; text-decoration: none; font-weight: 700; border-radius: 12px; text-transform: uppercase; font-size: 14px; letter-spacing: 0.08em; border-bottom: 4px solid #5b21b6; margin-top: 10px; }
+    .footer { text-align: center; font-size: 12px; color: #777777; padding: 20px 30px; border-top: 2px solid #e5e5e5; background: #fafafa; }
   </style>
 </head>
 <body>
-  <div class="invoice-box">
+  <div class="email-container">
     <div class="header">
-      <div class="logo-title">UpgradeSkills</div>
-      <div class="invoice-title">INVOICE<br><span style="font-size: 14px; font-weight: 500; color: #666;">#${invoiceNum}</span></div>
+      <div class="logo">Upgrade Skills</div>
+      <span class="badge">Payment Confirmed</span>
     </div>
-    
-    <div class="details">
-      <div>
-        <div class="section-title">Billing To:</div>
-        <div class="info">
-          <strong>${billingName || session.user.name}</strong><br>
-          Phone: ${billingPhone || 'N/A'}<br>
-          Address: ${billingAddress || 'N/A'},<br>
-          ${billingCity || ''}, ${billingState || ''} - ${billingZip || ''}
+    <div class="content">
+      <h2 class="headline">Thank you for your purchase!</h2>
+      <p>Hello ${session.user.name}, your payment for the masterclass has been verified successfully. You now have full access to your new learning materials.</p>
+      
+      <div class="receipt-details">
+        <div class="detail-row">
+          <span class="detail-label">Invoice Reference:</span>
+          <span class="detail-value">#${invoiceNum}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Purchased Course:</span>
+          <span class="detail-value">${course.title}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Amount Paid:</span>
+          <span class="detail-value">₹${course.price.toFixed(2)}</span>
         </div>
       </div>
-      <div style="text-align: right;">
-        <div class="section-title">Invoice Details:</div>
-        <div class="info">
-          Date: ${invoiceDate}<br>
-          Email: ${session.user.email}<br>
-          Payment ID: ${razorpay_payment_id || 'N/A'}<br>
-          Order ID: ${razorpay_order_id || 'N/A'}
-        </div>
-      </div>
+
+      <p style="text-align: center; margin-top: 24px;">
+        <a href="${baseUrl}/classroom" class="btn">Start Learning</a>
+        <a href="${invoiceUrl}" class="btn" style="background-color: #ffffff; color: #7c3aed; border: 2px solid #7c3aed; border-bottom: 4px solid #7c3aed; margin-left: 12px;">View Invoice</a>
+      </p>
     </div>
-    
-    <table class="invoice-table">
-      <thead>
-        <tr>
-          <th>Course Item</th>
-          <th style="text-align: right;">Amount</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>
-            <strong>${course.title}</strong><br>
-            <span style="font-size: 12px; color: #666;">LMS Online Learning Course Masterclass Access</span>
-          </td>
-          <td style="text-align: right; font-weight: 700;">₹${course.price.toFixed(2)}</td>
-        </tr>
-      </tbody>
-    </table>
-    
-    <div class="totals">
-      <div>Subtotal: ₹${course.price.toFixed(2)}</div>
-      <div>GST (0%): ₹0.00</div>
-      <div class="amount">Total Paid: ₹${course.price.toFixed(2)}</div>
-    </div>
-    
     <div class="footer">
-      Thank you for purchasing from UpgradeSkills.co.in!<br>
-      For query support, reach out to help@upgradeskills.co.in
+      For query support or billing disputes, reach out to help@upgradeskills.co.in.<br>
+      © ${new Date().getFullYear()} Upgrade Skills LMS. All rights reserved.
     </div>
   </div>
 </body>
 </html>`;
 
-        fs.writeFileSync(path.resolve(invoicesDir, `invoice_${invoiceId}.html`), invoiceHtml, 'utf8');
+        const plainText = `Hello ${session.user.name}, your payment of ₹${course.price} has been successfully verified! View your invoice at: ${invoiceUrl}`;
 
-        // Simulate Sending Mail to registered mail ID
-        console.log('\n=============================================================');
-        console.log(`[EMAIL DISPATCH] Simulating email sending to: ${session.user.email}`);
-        console.log(`[EMAIL DISPATCH] Subject: Your Course Invoice Bill for ${course.title} (#${invoiceNum})`);
-        console.log(`[EMAIL DISPATCH] Content: Hello ${session.user.name}, your payment of ₹${course.price} has been successfully verified!`);
-        console.log(`[EMAIL DISPATCH] Invoice HTML generated at: /invoices/invoice_${invoiceId}.html`);
-        console.log('=============================================================\n');
-        
-        // Write email dispatch status to server.log to make it visible
-        const logMsg = `[${new Date().toISOString()}] EMAIL SENT to ${session.user.email} - Invoice #${invoiceNum} for ${course.title} (Link: /invoices/invoice_${invoiceId}.html)\n`;
-        fs.appendFileSync(path.resolve(process.cwd(), 'server.log'), logMsg);
+        await sendEmail({
+          to: session.user.email,
+          subject,
+          html: htmlContent,
+          text: plainText
+        });
       } catch (err) {
-        console.error('Invoice HTML generation/log failed:', err);
+        console.error('Invoice log failed:', err);
       }
 
       return NextResponse.json({

@@ -1,10 +1,10 @@
 .pageContainer {
-  min-height: calc(100vh - 160px); /* Adjust for header/footer */
+  min-height: calc(100vh - 160px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 40px 24px;
-  background: radial-gradient(circle at 50% 50%, var(--primary-glow) 0%, var(--bg-deep) 100%);
+  background: transparent;
   transition: var(--transition-smooth);
 }
 
@@ -12,17 +12,14 @@
   width: 100%;
   max-width: 440px;
   background: var(--card-bg);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--border-trans);
+  border: 2px solid var(--border-trans);
   border-radius: var(--radius-lg);
   padding: 40px;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 6px 0 var(--border-trans);
   display: flex;
   flex-direction: column;
   gap: 24px;
-  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-
 
 .titleSection {
   text-align: center;
@@ -32,13 +29,15 @@
 }
 
 .title {
+  font-family: var(--font-display);
   font-size: 28px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.03em;
+  color: var(--text-primary);
 }
 
 .subtitle {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-secondary);
 }
 
@@ -46,22 +45,31 @@
   width: 100%;
   padding: 12px 18px;
   background-color: var(--bg-card);
-  border: 1px solid var(--border-trans);
-  border-radius: var(--radius-sm);
+  border: 2px solid var(--border-trans);
+  border-radius: var(--radius-inputs);
   color: var(--text-primary);
-  font-weight: 600;
-  font-size: 14px;
+  font-family: var(--font-din-round);
+  font-weight: 700;
+  font-size: 15px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  transition: var(--transition-smooth);
+  box-shadow: 0 4px 0 var(--border-trans);
+  transition: var(--transition-button);
+  position: relative;
+  top: 0;
+  user-select: none;
 }
 
 .oauthButton:hover {
-  background-color: var(--bg-input);
-  border-color: var(--text-muted);
+  background-color: var(--primary-glow);
+}
+
+.oauthButton:active {
+  top: 4px;
+  box-shadow: 0 0px 0 var(--border-trans);
 }
 
 .divider {
@@ -70,13 +78,16 @@
   text-align: center;
   color: var(--text-muted);
   font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .divider::before,
 .divider::after {
   content: '';
   flex: 1;
-  border-bottom: 1px solid var(--border-trans);
+  border-bottom: 2px solid var(--border-trans);
 }
 
 .divider:not(:empty)::before {
@@ -101,19 +112,19 @@
 
 .label {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-secondary);
 }
 
 .errorBanner {
   background-color: rgba(255, 77, 77, 0.1);
-  border: 1px solid rgba(255, 77, 77, 0.2);
+  border: 2px solid #ff4d4d;
   color: #ff4d4d;
   padding: 12px 16px;
   border-radius: var(--radius-sm);
   font-size: 14px;
   text-align: center;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .footerText {
@@ -123,13 +134,13 @@
 }
 
 .footerLink {
-  color: var(--primary);
-  font-weight: 600;
+  color: var(--secondary);
+  font-weight: 700;
   cursor: pointer;
   transition: var(--transition-smooth);
+  text-decoration: none;
 }
 
 .footerLink:hover {
   text-decoration: underline;
-  color: var(--secondary);
 }

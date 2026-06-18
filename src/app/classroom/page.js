@@ -8,6 +8,11 @@ import styles from './ClassroomList.module.css';
 
 export const revalidate = 0;
 
+export const metadata = {
+  title: 'My Learning',
+  description: 'Track your progress, watch lectures, and gain hands-on skills.',
+};
+
 export default async function ClassroomListPage() {
   const session = await getServerSession(authOptions);
 
