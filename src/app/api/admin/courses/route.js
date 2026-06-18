@@ -63,10 +63,8 @@ export async function POST(request) {
       },
     });
 
-    // Trigger simulated student email notifications (asynchronous)
-    notifyStudentsOfNewCourse(course).catch((err) => {
-      console.error('Failed to notify students of new course:', err);
-    });
+    // Trigger student email notifications
+    await notifyStudentsOfNewCourse(course);
 
     return NextResponse.json({
       success: true,

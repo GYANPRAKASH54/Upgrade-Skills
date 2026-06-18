@@ -117,9 +117,7 @@ export async function PUT(request, { params }) {
 
     // If course transitioned from unpublished (draft/private) to published, notify students
     if (!course.published && updatedCourse.published) {
-      notifyStudentsOfNewCourse(updatedCourse).catch((err) => {
-        console.error('Failed to notify students of new course:', err);
-      });
+      await notifyStudentsOfNewCourse(updatedCourse);
     }
 
     return NextResponse.json(updatedCourse);

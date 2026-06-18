@@ -44,10 +44,8 @@ export async function POST(request) {
       },
     });
 
-    // Trigger simulated student email notifications (asynchronous)
-    notifyStudentsOfNewEvent(competition).catch((err) => {
-      console.error('Failed to notify students of new competition:', err);
-    });
+    // Trigger student email notifications
+    await notifyStudentsOfNewEvent(competition);
 
     return NextResponse.json({
       success: true,
