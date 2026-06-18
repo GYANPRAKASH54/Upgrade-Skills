@@ -16,7 +16,7 @@ export async function notifyStudentsOfNewCourse(course) {
 
     console.log(`\n[NOTIFICATION SEARCH] Found ${students.length} students to notify about new course: "${course.title}".`);
 
-    for (const student of students) {
+    const emailPromises = students.map((student) => {
       const subject = `New Course Launched: Learn ${course.title} today!`;
       
       const htmlContent = `<!DOCTYPE html>
@@ -75,13 +75,15 @@ export async function notifyStudentsOfNewCourse(course) {
 
       const plainText = `Hello ${student.name}, a new course has been launched on Upgrade Skills: "${course.title}". Check it out at: https://upgradeskills.co.in/courses/${course.id}`;
       
-      await sendEmail({
+      return sendEmail({
         to: student.email,
         subject,
         html: htmlContent,
         text: plainText
       });
-    }
+    });
+
+    await Promise.allSettled(emailPromises);
   } catch (error) {
     console.error('Failed to notify students of new course:', error);
   }
@@ -102,7 +104,7 @@ export async function notifyStudentsOfNewEvent(event) {
 
     console.log(`\n[NOTIFICATION SEARCH] Found ${students.length} students to notify about new event: "${event.title}".`);
 
-    for (const student of students) {
+    const emailPromises = students.map((student) => {
       const subject = `New InnoTech Challenge: ${event.title} is now Open!`;
       
       const htmlContent = `<!DOCTYPE html>
@@ -156,13 +158,15 @@ export async function notifyStudentsOfNewEvent(event) {
 
       const plainText = `Hello ${student.name}, a new InnoTech challenge has been launched: "${event.title}". Participate now: https://upgradeskills.co.in/innotechxperience/${event.id}`;
       
-      await sendEmail({
+      return sendEmail({
         to: student.email,
         subject,
         html: htmlContent,
         text: plainText
       });
-    }
+    });
+
+    await Promise.allSettled(emailPromises);
   } catch (error) {
     console.error('Failed to notify students of new event:', error);
   }
