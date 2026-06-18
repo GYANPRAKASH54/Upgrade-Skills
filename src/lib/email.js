@@ -12,7 +12,7 @@ import path from 'path';
  */
 export async function sendEmail({ to, subject, html, text }) {
   const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.EMAIL_FROM || 'Upgrade Skills <onboarding@resend.dev>';
+  const fromEmail = process.env.EMAIL_FROM || 'Upgrade Skills <team@upgradeskills.co.in>';
 
   if (apiKey && apiKey.trim() !== "") {
     try {
