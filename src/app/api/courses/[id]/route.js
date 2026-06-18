@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { notifyStudentsOfNewCourse } from '@/lib/notifications';
 
 // GET: Fetch a single course with curriculum (sections & lectures)
 export async function GET(request, { params }) {
@@ -113,6 +114,13 @@ export async function PUT(request, { params }) {
         published: published !== undefined ? published : course.published,
       },
     });
+
+    // If course transitioned from unpublished (draft/private) to published, notify students
+    if (!course.published && updatedCourse.published) {
+      notifyStudentsOfNewCourse(updatedCourse).catch((err) => {
+        console.error('Failed to notify students of new course:', err);
+      });
+    }
 
     return NextResponse.json(updatedCourse);
   } catch (error) {
