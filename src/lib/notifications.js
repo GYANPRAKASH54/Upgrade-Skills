@@ -1,5 +1,5 @@
 import { prisma } from './db';
-import { sendEmail } from './email';
+import { sendEmail, sendEmailBatch } from './email';
 
 /**
  * Sends an email notification to all registered students when a new course is launched.
@@ -16,7 +16,7 @@ export async function notifyStudentsOfNewCourse(course) {
 
     console.log(`\n[NOTIFICATION SEARCH] Found ${students.length} students to notify about new course: "${course.title}".`);
 
-    const emailPromises = students.map((student) => {
+    const emails = students.map((student) => {
       const subject = `New Course Launched: Learn ${course.title} today!`;
       
       const htmlContent = `<!DOCTYPE html>
@@ -75,15 +75,15 @@ export async function notifyStudentsOfNewCourse(course) {
 
       const plainText = `Hello ${student.name}, a new course has been launched on Upgrade Skills: "${course.title}". Check it out at: https://upgradeskills.co.in/courses/${course.id}`;
       
-      return sendEmail({
+      return {
         to: student.email,
         subject,
         html: htmlContent,
         text: plainText
-      });
+      };
     });
 
-    await Promise.allSettled(emailPromises);
+    await sendEmailBatch(emails);
   } catch (error) {
     console.error('Failed to notify students of new course:', error);
   }
@@ -104,7 +104,7 @@ export async function notifyStudentsOfNewEvent(event) {
 
     console.log(`\n[NOTIFICATION SEARCH] Found ${students.length} students to notify about new event: "${event.title}".`);
 
-    const emailPromises = students.map((student) => {
+    const emails = students.map((student) => {
       const subject = `New InnoTech Challenge: ${event.title} is now Open!`;
       
       const htmlContent = `<!DOCTYPE html>
@@ -158,15 +158,15 @@ export async function notifyStudentsOfNewEvent(event) {
 
       const plainText = `Hello ${student.name}, a new InnoTech challenge has been launched: "${event.title}". Participate now: https://upgradeskills.co.in/innotechxperience/${event.id}`;
       
-      return sendEmail({
+      return {
         to: student.email,
         subject,
         html: htmlContent,
         text: plainText
-      });
+      };
     });
 
-    await Promise.allSettled(emailPromises);
+    await sendEmailBatch(emails);
   } catch (error) {
     console.error('Failed to notify students of new event:', error);
   }

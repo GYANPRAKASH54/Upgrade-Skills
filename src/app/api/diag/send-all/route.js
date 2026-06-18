@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { sendEmail } from '@/lib/email';
+import { sendEmail, sendEmailBatch } from '@/lib/email';
 
 async function verifyAdmin() {
   const session = await getServerSession(authOptions);
@@ -24,42 +24,24 @@ export async function GET(request) {
       select: { name: true, email: true },
     });
 
-    const results = [];
-
-    // Let's send a test email to each student and record the response
-    const emailPromises = students.map(async (student) => {
-      const subject = `🔔 Upgrade Skills - Test Parallel Dispatch`;
+    // Let's construct a batch payload
+    const batchEmails = students.map((student) => {
+      const subject = `🔔 Upgrade Skills - Test Batch Dispatch`;
       const htmlContent = `<p>Hello ${student.name || 'Learner'},</p>
-                           <p>This is a live test dispatch of the parallel emailing system.</p>`;
-      
-      try {
-        const res = await sendEmail({
-          to: student.email,
-          subject,
-          html: htmlContent,
-        });
-        return {
-          email: student.email,
-          success: res.success,
-          id: res.id || null,
-          simulated: res.simulated || false,
-          error: res.error || null,
-        };
-      } catch (err) {
-        return {
-          email: student.email,
-          success: false,
-          error: err.message || err.toString(),
-        };
-      }
+                           <p>This is a live test dispatch using Resend's native Batch API.</p>`;
+      return {
+        to: student.email,
+        subject,
+        html: htmlContent,
+      };
     });
 
-    const settledResults = await Promise.all(emailPromises);
+    const batchResult = await sendEmailBatch(batchEmails);
 
     return NextResponse.json({
       success: true,
       studentsCount: students.length,
-      settledResults,
+      batchResult,
     });
   } catch (error) {
     console.error('Send-all diagnostics error:', error);

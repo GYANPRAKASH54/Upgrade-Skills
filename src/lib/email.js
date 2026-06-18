@@ -61,3 +61,67 @@ export async function sendEmail({ to, subject, html, text }) {
 
   return { success: false, simulated: true };
 }
+
+/**
+ * Sends a batch of emails using Resend API (up to 100 emails in a single request).
+ * 
+ * @param {Array<object>} emails - Array of email options: { to, subject, html, text }
+ */
+export async function sendEmailBatch(emails) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.EMAIL_FROM || 'Upgrade Skills <team@upgradeskills.co.in>';
+
+  if (apiKey && apiKey.trim() !== "") {
+    try {
+      // Structure emails into Resend batch format
+      const batchData = emails.map((email) => ({
+        from: fromEmail,
+        to: email.to,
+        subject: email.subject,
+        html: email.html,
+        text: email.text || email.html.replace(/<[^>]*>/g, ''),
+      }));
+
+      const response = await fetch('https://api.resend.com/emails/batch', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify(batchData),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to send email batch via Resend API');
+      }
+
+      console.log(`[RESEND BATCH] Successfully dispatched ${emails.length} emails`);
+      return { success: true, count: emails.length };
+    } catch (err) {
+      console.error('[RESEND BATCH ERROR] Failed to send email batch via Resend:', err);
+      return { success: false, error: err.message, simulated: false };
+    }
+  }
+
+  // Fallback / Simulation Mode
+  console.log(`\n=============================================================`);
+  console.log(`[EMAIL BATCH SIMULATION] Dispatching batch of ${emails.length} emails:`);
+  for (const email of emails) {
+    console.log(`  - to: ${email.to} | Subject: "${email.subject}"`);
+  }
+  console.log(`=============================================================\n`);
+
+  const logFilePath = path.resolve(process.cwd(), 'server.log');
+  let logMsg = '';
+  for (const email of emails) {
+    logMsg += `[${new Date().toISOString()}] EMAIL SIMULATED to ${email.to} (BATCH) - Subject: "${email.subject}"\n`;
+  }
+  try {
+    fs.appendFileSync(logFilePath, logMsg);
+  } catch (logErr) {
+    console.error('Failed to write simulation log:', logErr);
+  }
+
+  return { success: false, simulated: true };
+}
