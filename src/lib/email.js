@@ -40,7 +40,7 @@ export async function sendEmail({ to, subject, html, text }) {
       return { success: true, id: data.id };
     } catch (err) {
       console.error('[RESEND EMAIL ERROR] Failed to send email via Resend:', err);
-      // Fallback to local simulation logging on failure
+      return { success: false, error: err.message, simulated: false };
     }
   }
 

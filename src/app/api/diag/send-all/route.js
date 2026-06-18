@@ -43,6 +43,7 @@ export async function GET(request) {
           success: res.success,
           id: res.id || null,
           simulated: res.simulated || false,
+          error: res.error || null,
         };
       } catch (err) {
         return {
