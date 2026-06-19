@@ -20,6 +20,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized. Please sign in.' }, { status: 401 });
     }
 
+    const body = await request.json();
     const { action, courseId, couponCode } = body;
 
     if (!courseId) {
