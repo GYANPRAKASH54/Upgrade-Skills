@@ -1,9 +1,6 @@
 import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
-
-const ipRequests = new Map();
-const windowMs = 60000; // 1 minute window
-const maxRequests = 500; // 500 requests limit
+import { rateLimit } from './lib/redis';
 
 export async function middleware(req) {
   const hostname = req.nextUrl.hostname;
@@ -46,27 +43,13 @@ export async function middleware(req) {
   const isLocalhost = ip === '127.0.0.1' || ip === '::1' || ip === 'localhost' || ip.endsWith('127.0.0.1');
   
   if (!isLocalhost) {
-    // Guard map size to prevent memory leaks from long-running server instances
-    if (ipRequests.size > 10000) {
-      ipRequests.clear();
-    }
-
-    let ipData = ipRequests.get(ip);
-    if (!ipData || now > ipData.resetTime) {
-      ipData = {
-        count: 0,
-        resetTime: now + windowMs,
-      };
-    }
-
-    ipData.count++;
-    ipRequests.set(ip, ipData);
-
-    if (ipData.count > maxRequests) {
+    const rateLimitResult = await rateLimit(ip, 500, 60);
+    
+    if (rateLimitResult.exceeded) {
       return new NextResponse('Too Many Requests. Access restricted to protect server resources.', {
         status: 429,
         headers: {
-          'Retry-After': Math.ceil((ipData.resetTime - now) / 1000).toString(),
+          'Retry-After': rateLimitResult.retryAfter.toString(),
           'Content-Type': 'text/plain; charset=utf-8',
         },
       });
