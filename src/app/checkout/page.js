@@ -290,7 +290,7 @@ function CheckoutForm() {
           textAlign: 'left',
           width: '100%'
         }}>
-          ✓ A professional course bill/invoice has been successfully generated and sent to your registered email: <strong>{session?.user?.email}</strong>
+          ✓ Enrollment is successful! A confirmation receipt has been sent to your registered email: <strong>{session?.user?.email}</strong>
         </div>
         <button 
           onClick={() => router.push(`/classroom/${courseId}`)}
