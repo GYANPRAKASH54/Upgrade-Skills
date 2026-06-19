@@ -48,11 +48,18 @@ export async function sendEmail({ to, subject, html, text }) {
   console.log('\n=============================================================');
   console.log(`[EMAIL SIMULATION] Dispatching to: ${to}`);
   console.log(`[EMAIL SIMULATION] Subject: ${subject}`);
-  console.log(`[EMAIL SIMULATION] Body excerpt: ${text || html.replace(/<[^>]*>/g, '').substring(0, 150)}...`);
+  if (text) {
+    console.log(`[EMAIL SIMULATION] Text Content:\n${text}`);
+  } else {
+    console.log(`[EMAIL SIMULATION] Body excerpt: ${html.replace(/<[^>]*>/g, '').substring(0, 150)}...`);
+  }
   console.log('=============================================================\n');
 
   const logFilePath = path.resolve(process.cwd(), 'server.log');
-  const logMsg = `[${new Date().toISOString()}] EMAIL SIMULATED to ${to} - Subject: "${subject}"\n`;
+  let logMsg = `[${new Date().toISOString()}] EMAIL SIMULATED to ${to} - Subject: "${subject}"\n`;
+  if (text) {
+    logMsg += `[EMAIL SIMULATION CONTENT] ${text}\n`;
+  }
   try {
     fs.appendFileSync(logFilePath, logMsg);
   } catch (logErr) {

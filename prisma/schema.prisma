@@ -94,6 +94,11 @@ model Enrollment {
   quizAttempts  Int      @default(0)
   lastAttemptAt DateTime?
 
+  // Coupon Info
+  couponId          String?
+  coupon            Coupon?  @relation(fields: [couponId], references: [id], onDelete: SetNull)
+  discountedPrice   Float?
+
   @@unique([studentId, courseId])
 }
 
@@ -168,5 +173,16 @@ model QuizQuestion {
   answerIndex Int
   courseId    String
   course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model Coupon {
+  id            String       @id @default(uuid())
+  code          String       @unique
+  discountType  String       // PERCENTAGE or FIXED
+  discountValue Float
+  active        Boolean      @default(true)
+  expiresAt     DateTime?
+  createdAt     DateTime     @default(now())
+  enrollments   Enrollment[]
 }
 

@@ -23,7 +23,8 @@ import {
   Calendar,
   Download,
   RefreshCw,
-  RotateCcw
+  RotateCcw,
+  Tag
 } from 'lucide-react';
 import styles from './Admin.module.css';
 
@@ -33,6 +34,7 @@ export default function AdminDashboardClient({
   initialUsers, 
   initialQuestions = [],
   initialCompetitions = [],
+  initialCoupons = [],
   stats 
 }) {
   const [activeTab, setActiveTab] = useState('analytics');
@@ -41,7 +43,16 @@ export default function AdminDashboardClient({
   const [courses, setCourses] = useState(initialCourses);
   const [questions, setQuestions] = useState(initialQuestions);
   const [competitions, setCompetitions] = useState(initialCompetitions);
+  const [coupons, setCoupons] = useState(initialCoupons);
   const [compSearch, setCompSearch] = useState('');
+
+  // New Coupon form state
+  const [couponCode, setCouponCode] = useState('');
+  const [discountType, setDiscountType] = useState('PERCENTAGE');
+  const [discountValue, setDiscountValue] = useState('');
+  const [couponExpiry, setCouponExpiry] = useState('');
+  const [createCouponLoading, setCreateCouponLoading] = useState(false);
+  const [couponSearch, setCouponSearch] = useState('');
 
   // New competition form state
   const [compTitle, setCompTitle] = useState('');
@@ -189,6 +200,11 @@ export default function AdminDashboardClient({
   const filteredCompetitions = competitions.filter((comp) => {
     const query = compSearch.toLowerCase();
     return comp.title.toLowerCase().includes(query) || comp.description.toLowerCase().includes(query);
+  });
+
+  const filteredCoupons = coupons.filter((coupon) => {
+    const query = couponSearch.toLowerCase();
+    return coupon.code.toLowerCase().includes(query);
   });
 
   // Filtered lists for manual enroll selectors
@@ -582,6 +598,76 @@ export default function AdminDashboardClient({
     }
   };
 
+  // Handle Create Coupon
+  const handleCreateCoupon = async (e) => {
+    e.preventDefault();
+    if (!couponCode || !discountType || !discountValue) {
+      setMessage({ type: 'error', text: 'Please fill in all required fields.' });
+      return;
+    }
+
+    setCreateCouponLoading(true);
+    setMessage({ type: '', text: '' });
+
+    try {
+      const res = await fetch('/api/admin/coupons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: couponCode,
+          discountType,
+          discountValue: parseFloat(discountValue),
+          expiresAt: couponExpiry || null,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage({ type: 'error', text: data.error || 'Failed to create coupon.' });
+      } else {
+        setMessage({ type: 'success', text: `Coupon "${couponCode}" created successfully!` });
+        setCoupons([data.coupon, ...coupons]);
+        // Reset form
+        setCouponCode('');
+        setDiscountType('PERCENTAGE');
+        setDiscountValue('');
+        setCouponExpiry('');
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage({ type: 'error', text: 'An unexpected error occurred while creating coupon.' });
+    } finally {
+      setCreateCouponLoading(false);
+    }
+  };
+
+  // Handle Delete Coupon
+  const handleDeleteCoupon = async (couponId, code) => {
+    const confirmed = window.confirm(`Are you sure you want to permanently delete coupon "${code}"?`);
+    if (!confirmed) return;
+
+    setMessage({ type: '', text: '' });
+
+    try {
+      const res = await fetch(`/api/admin/coupons?id=${couponId}`, {
+        method: 'DELETE',
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage({ type: 'error', text: data.error || 'Failed to delete coupon.' });
+      } else {
+        setMessage({ type: 'success', text: `Successfully deleted coupon "${code}".` });
+        setCoupons(coupons.filter((c) => c.id !== couponId));
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage({ type: 'error', text: 'An unexpected error occurred while deleting coupon.' });
+    }
+  };
+
   // Calculate live stats summary metrics
   const liveTotalRevenue = courses.reduce((acc, course) => {
     const purchaseCount = enrollments.filter((e) => e.courseId === course.id).length;
@@ -676,6 +762,13 @@ export default function AdminDashboardClient({
         >
           <Trophy size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
           InnoTech Events
+        </button>
+        <button 
+          onClick={() => { setActiveTab('coupons'); setMessage({ type: '', text: '' }); }}
+          className={`${styles.tabBtn} ${activeTab === 'coupons' ? styles.activeTabBtn : ''}`}
+        >
+          <Tag size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+          Coupon Codes
         </button>
       </div>
 
@@ -1514,6 +1607,171 @@ export default function AdminDashboardClient({
                   style={{ width: '100%', padding: '12px', marginTop: '10px', fontSize: '13px' }}
                 >
                   {createCompLoading ? 'Creating Event...' : 'Create Event'}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 7: Coupons Management */}
+        {activeTab === 'coupons' && (
+          <div className={styles.layoutGrid}>
+            {/* Left side: Coupons List */}
+            <div className={`${styles.tableCard} glass-card`}>
+              <div className={styles.searchHeader}>
+                <h3 style={{ fontSize: '18px', fontWeight: '700' }}>Active Coupon Codes</h3>
+                <div className={styles.searchInputWrapper}>
+                  <Search size={16} className={styles.searchIcon} />
+                  <input
+                    type="text"
+                    placeholder="Search coupons by code..."
+                    value={couponSearch}
+                    onChange={(e) => setCouponSearch(e.target.value)}
+                    className="form-input"
+                    style={{ paddingLeft: '42px', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
+
+              {filteredCoupons.length === 0 ? (
+                <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  No coupon codes found.
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table className={styles.adminTable}>
+                    <thead>
+                      <tr>
+                        <th className={styles.th}>Code</th>
+                        <th className={styles.th}>Type</th>
+                        <th className={styles.th}>Value</th>
+                        <th className={styles.th}>Status</th>
+                        <th className={styles.th}>Expiry</th>
+                        <th className={styles.th}>Uses</th>
+                        <th className={styles.th} style={{ textAlign: 'center' }}>Remove</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredCoupons.map((coupon) => {
+                        const isExpired = coupon.expiresAt && new Date() > new Date(coupon.expiresAt);
+                        const statusText = isExpired ? 'Expired' : coupon.active ? 'Active' : 'Inactive';
+                        const statusStyle = isExpired ? styles.roleAdmin : coupon.active ? styles.roleStudent : styles.roleTester;
+
+                        return (
+                          <tr key={coupon.id} className={styles.tr}>
+                            <td className={styles.td} style={{ fontWeight: '700', color: 'var(--primary)' }}>
+                              {coupon.code}
+                            </td>
+                            <td className={styles.td} style={{ fontSize: '13px' }}>
+                              {coupon.discountType}
+                            </td>
+                            <td className={styles.td} style={{ fontWeight: '700' }}>
+                              {coupon.discountType === 'PERCENTAGE' ? `${coupon.discountValue}%` : `₹${coupon.discountValue}`}
+                            </td>
+                            <td className={styles.td}>
+                              <span className={`${styles.roleBadge} ${statusStyle}`}>
+                                {statusText}
+                              </span>
+                            </td>
+                            <td className={styles.td} style={{ fontSize: '12px' }}>
+                              {coupon.expiresAt ? new Date(coupon.expiresAt).toLocaleDateString() : 'Never'}
+                            </td>
+                            <td className={styles.td} style={{ fontWeight: '700', color: 'var(--primary)' }}>
+                              {coupon._count?.enrollments || 0}
+                            </td>
+                            <td className={styles.td}>
+                              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                <button
+                                  onClick={() => handleDeleteCoupon(coupon.id, coupon.code)}
+                                  className={styles.revokeBtn}
+                                  title="Delete Coupon"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Right side: Add Coupon Form */}
+            <div className={`${styles.formCard} glass-card`}>
+              <h3 className={styles.formTitle}>
+                <PlusCircle size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+                Create New Coupon
+              </h3>
+              <form onSubmit={handleCreateCoupon} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label} style={{ fontSize: '13px' }}>Coupon Code *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. DISCOUNT10"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    className="form-input"
+                    required
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label} style={{ fontSize: '13px' }}>Discount Type *</label>
+                  <select 
+                    value={discountType} 
+                    onChange={(e) => setDiscountType(e.target.value)}
+                    className={styles.selectInput}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      backgroundColor: 'var(--bg-inputs)',
+                      border: '2px solid var(--border-trans)',
+                      borderRadius: 'var(--radius-inputs)',
+                      color: 'var(--text-primary)',
+                      fontWeight: '700',
+                      outline: 'none',
+                    }}
+                    required
+                  >
+                    <option value="PERCENTAGE">Percentage (%)</option>
+                    <option value="FIXED">Fixed Amount (₹)</option>
+                  </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label} style={{ fontSize: '13px' }}>Discount Value *</label>
+                  <input
+                    type="number"
+                    placeholder={discountType === 'PERCENTAGE' ? 'e.g. 10' : 'e.g. 299'}
+                    value={discountValue}
+                    onChange={(e) => setDiscountValue(e.target.value)}
+                    className="form-input"
+                    min="1"
+                    max={discountType === 'PERCENTAGE' ? '100' : undefined}
+                    required
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label} style={{ fontSize: '13px' }}>Expiry Date (Optional)</label>
+                  <input
+                    type="date"
+                    value={couponExpiry}
+                    onChange={(e) => setCouponExpiry(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={createCouponLoading}
+                  className="btn-primary"
+                  style={{ width: '100%', padding: '12px', marginTop: '10px', fontSize: '13px' }}
+                >
+                  {createCouponLoading ? 'Creating Coupon...' : 'Create Coupon'}
                 </button>
               </form>
             </div>

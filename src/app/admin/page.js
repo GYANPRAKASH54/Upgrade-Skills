@@ -110,6 +110,16 @@ export default async function AdminPage() {
     orderBy: { endDate: 'asc' },
   });
 
+  // 5.6 Fetch Coupon Codes
+  const coupons = await prisma.coupon.findMany({
+    include: {
+      _count: {
+        select: { enrollments: true },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
   // 6. Aggregate metrics
   const totalUsers = users.length;
   const totalCourses = courses.length;
@@ -141,6 +151,7 @@ export default async function AdminPage() {
           initialUsers={users}
           initialQuestions={questions}
           initialCompetitions={competitions}
+          initialCoupons={coupons}
           stats={{
             totalUsers,
             totalCourses,

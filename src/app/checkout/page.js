@@ -28,6 +28,14 @@ function CheckoutForm() {
   const [billingState, setBillingState] = useState('');
   const [billingZip, setBillingZip] = useState('');
 
+  // Coupon states
+  const [couponCodeInput, setCouponCodeInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponMsg, setCouponMsg] = useState(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [discountedPrice, setDiscountedPrice] = useState(0);
+
   // Prefill billing name from session
   useEffect(() => {
     if (session?.user?.name) {
@@ -52,6 +60,7 @@ function CheckoutForm() {
           setError(data.error || 'Failed to load course details.');
         } else {
           setCourse(data.course);
+          setDiscountedPrice(data.course.price);
           if (data.isEnrolled) {
             setSuccess(true);
           }
@@ -98,7 +107,7 @@ function CheckoutForm() {
       const orderRes = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'create', courseId }),
+        body: JSON.stringify({ action: 'create', courseId, couponCode: appliedCoupon?.code }),
       });
 
       const orderData = await orderRes.json();
@@ -144,6 +153,7 @@ function CheckoutForm() {
                 billingCity,
                 billingState,
                 billingZip,
+                couponCode: appliedCoupon?.code,
               }),
             });
 
@@ -181,6 +191,78 @@ function CheckoutForm() {
     } catch (err) {
       console.error(err);
       setError('Checkout failed. Please try again.');
+      setPaymentLoading(false);
+    }
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCodeInput.trim()) return;
+    setCouponLoading(true);
+    setCouponMsg(null);
+
+    try {
+      const res = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponCodeInput, courseId }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setCouponMsg({ type: 'error', text: data.error || 'Failed to apply coupon.' });
+      } else {
+        setAppliedCoupon(data.coupon);
+        setDiscountAmount(data.discountAmount);
+        setDiscountedPrice(data.discountedPrice);
+        setCouponMsg({ type: 'success', text: `Coupon applied: ${data.coupon.code} (Saved ₹${data.discountAmount})` });
+      }
+    } catch (err) {
+      console.error(err);
+      setCouponMsg({ type: 'error', text: 'Error applying coupon code.' });
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setDiscountAmount(0);
+    setDiscountedPrice(course?.price || 0);
+    setCouponCodeInput('');
+    setCouponMsg(null);
+  };
+
+  const handleFreeEnrollment = async () => {
+    if (!session) {
+      router.push(`/auth/signin?callbackUrl=/checkout?courseId=${courseId}`);
+      return;
+    }
+
+    setError('');
+    setPaymentLoading(true);
+
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'enroll_free',
+          courseId,
+          couponCode: appliedCoupon?.code,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Failed to complete free enrollment.');
+      } else {
+        setSuccess(true);
+        removeFromCart(courseId);
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Error enrolling in course.');
+    } finally {
       setPaymentLoading(false);
     }
   };
@@ -334,18 +416,81 @@ function CheckoutForm() {
           <span>Price:</span>
           <span>₹{course?.price}</span>
         </div>
+        {appliedCoupon && (
+          <div className={styles.summaryRow} style={{ color: 'var(--primary)', fontWeight: '700' }}>
+            <span>Discount ({appliedCoupon.code}):</span>
+            <span>-₹{discountAmount}</span>
+          </div>
+        )}
         <div className={styles.summaryTotalRow}>
           <span>Total:</span>
-          <span className="text-gradient">₹{course?.price}</span>
+          <span className="text-gradient">₹{discountedPrice}</span>
         </div>
 
-        <button 
-          onClick={handlePayment}
-          disabled={paymentLoading}
-          className={`btn-primary ${styles.payButton}`}
-        >
-          <CreditCard size={18} /> {paymentLoading ? 'Processing...' : 'Pay with Razorpay'}
-        </button>
+        {/* Coupon Section */}
+        <div style={{ marginTop: '16px', marginBottom: '24px', borderTop: '2px solid var(--border-trans)', paddingTop: '16px' }}>
+          <label className={styles.label} style={{ marginBottom: '8px', display: 'block' }}>Promo/Coupon Code</label>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <input
+              type="text"
+              placeholder="e.g. SAVE10"
+              value={couponCodeInput}
+              onChange={(e) => setCouponCodeInput(e.target.value.toUpperCase())}
+              className="form-input"
+              style={{ flexGrow: 1, padding: '8px 12px', fontSize: '14px', textTransform: 'uppercase' }}
+              disabled={appliedCoupon}
+            />
+            {appliedCoupon ? (
+              <button
+                type="button"
+                onClick={handleRemoveCoupon}
+                className="btn-primary"
+                style={{ padding: '8px 12px', fontSize: '13px', whiteSpace: 'nowrap', backgroundColor: '#ef4444', boxShadow: '0 4px 0 #b91c1c' }}
+              >
+                Remove
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleApplyCoupon}
+                className="btn-primary"
+                style={{ padding: '8px 12px', fontSize: '13px', whiteSpace: 'nowrap' }}
+                disabled={!couponCodeInput.trim() || couponLoading}
+              >
+                {couponLoading ? '...' : 'Apply'}
+              </button>
+            )}
+          </div>
+          {couponMsg && (
+            <div style={{ 
+              fontSize: '12px', 
+              marginTop: '6px', 
+              color: couponMsg.type === 'success' ? '#10b981' : '#ef4444',
+              fontWeight: '700'
+            }}>
+              {couponMsg.text}
+            </div>
+          )}
+        </div>
+
+        {discountedPrice === 0 ? (
+          <button 
+            onClick={handleFreeEnrollment}
+            disabled={paymentLoading}
+            className={`btn-primary ${styles.payButton}`}
+            style={{ backgroundColor: '#10b981', boxShadow: '0 4px 0 #059669' }}
+          >
+            {paymentLoading ? 'Enrolling...' : 'Claim Free Access'}
+          </button>
+        ) : (
+          <button 
+            onClick={handlePayment}
+            disabled={paymentLoading}
+            className={`btn-primary ${styles.payButton}`}
+          >
+            <CreditCard size={18} /> {paymentLoading ? 'Processing...' : 'Pay with Razorpay'}
+          </button>
+        )}
       </div>
     </div>
   );
