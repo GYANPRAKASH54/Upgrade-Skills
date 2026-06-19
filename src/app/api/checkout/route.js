@@ -76,19 +76,27 @@ export async function POST(request) {
         }
       }
 
+      // Calculate platform fee and GST
+      const platformFee = Number((finalPrice * 0.03).toFixed(2));
+      const gst = Number((finalPrice * 0.18).toFixed(2));
+      const totalAmount = Number((finalPrice + platformFee + gst).toFixed(2));
+
       // If price is reduced to 0, return free status immediately
-      if (finalPrice === 0) {
+      if (totalAmount === 0) {
         return NextResponse.json({
           success: true,
           isFree: true,
           discountedPrice: 0,
+          platformFee: 0,
+          gst: 0,
+          totalAmount: 0,
           courseTitle: course.title,
           courseThumbnail: course.thumbnail,
         });
       }
 
-      // Create Razorpay order (amount in paisa: price * 100)
-      const amountInPaisa = Math.round(finalPrice * 100);
+      // Create Razorpay order (amount in paisa: totalAmount * 100)
+      const amountInPaisa = Math.round(totalAmount * 100);
 
       const options = {
         amount: amountInPaisa,
@@ -107,6 +115,9 @@ export async function POST(request) {
         courseTitle: course.title,
         courseThumbnail: course.thumbnail,
         discountedPrice: finalPrice,
+        platformFee,
+        gst,
+        totalAmount,
       });
     }
 
@@ -135,7 +146,11 @@ export async function POST(request) {
       discountAmount = Math.min(discountAmount, course.price);
       const finalPrice = Math.max(0, course.price - discountAmount);
 
-      if (finalPrice > 0) {
+      const platformFee = Number((finalPrice * 0.03).toFixed(2));
+      const gst = Number((finalPrice * 0.18).toFixed(2));
+      const totalAmount = Number((finalPrice + platformFee + gst).toFixed(2));
+
+      if (totalAmount > 0) {
         return NextResponse.json({ error: 'Coupon does not provide a 100% discount' }, { status: 400 });
       }
 
@@ -180,6 +195,7 @@ export async function POST(request) {
     .headline { font-size: 20px; font-weight: 800; color: #3c3c3c; margin: 0 0 16px 0; }
     .receipt-details { border: 2px solid #e5e5e5; border-radius: 12px; padding: 20px; background: #fafafa; margin: 20px 0; }
     .detail-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+    .detail-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
     .detail-label { color: #777777; }
     .detail-value { font-weight: 700; color: #3c3c3c; }
     .btn { display: inline-block; padding: 12px 24px; background-color: #7c3aed; color: white; text-decoration: none; font-weight: 700; border-radius: 12px; text-transform: uppercase; font-size: 14px; letter-spacing: 0.08em; border-bottom: 4px solid #5b21b6; margin-top: 10px; }
@@ -206,8 +222,24 @@ export async function POST(request) {
           <span class="detail-value">${course.title}</span>
         </div>
         <div class="detail-row">
-          <span class="detail-label">Amount Paid:</span>
-          <span class="detail-value">₹0.00 (Coupon: ${coupon.code})</span>
+          <span class="detail-label">Original Course Price:</span>
+          <span class="detail-value">₹${course.price.toFixed(2)}</span>
+        </div>
+        <div class="detail-row" style="color: #7c3aed; font-weight: bold;">
+          <span class="detail-label">Coupon Discount:</span>
+          <span class="detail-value">-₹${course.price.toFixed(2)}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Platform Fee (3%):</span>
+          <span class="detail-value">₹0.00</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">GST (18%):</span>
+          <span class="detail-value">₹0.00</span>
+        </div>
+        <div class="detail-row" style="border-top: 1px solid #e5e5e5; padding-top: 8px; margin-top: 8px; font-size: 16px;">
+          <span class="detail-label" style="font-weight: 800; color: #3c3c3c;">Total Amount Paid:</span>
+          <span class="detail-value" style="font-weight: 800; color: #7c3aed;">₹0.00 (Coupon: ${coupon.code})</span>
         </div>
       </div>
 
@@ -296,6 +328,11 @@ export async function POST(request) {
         }
       }
 
+      // Calculate platform fee and GST for receipt display
+      const platformFee = Number((finalPrice * 0.03).toFixed(2));
+      const gst = Number((finalPrice * 0.18).toFixed(2));
+      const totalAmount = Number((finalPrice + platformFee + gst).toFixed(2));
+
       // Securely enroll student in database after payment verification
       const enrollment = await prisma.enrollment.create({
         data: {
@@ -363,8 +400,26 @@ export async function POST(request) {
           <span class="detail-value">${course.title}</span>
         </div>
         <div class="detail-row">
-          <span class="detail-label">Amount Paid:</span>
-          <span class="detail-value">₹${finalPrice.toFixed(2)}</span>
+          <span class="detail-label">Original Course Price:</span>
+          <span class="detail-value">₹${course.price.toFixed(2)}</span>
+        </div>
+        ${couponCode ? `
+        <div class="detail-row" style="color: #7c3aed; font-weight: bold;">
+          <span class="detail-label">Coupon Discount:</span>
+          <span class="detail-value">-₹${(course.price - finalPrice).toFixed(2)}</span>
+        </div>
+        ` : ''}
+        <div class="detail-row">
+          <span class="detail-label">Platform Fee (3%):</span>
+          <span class="detail-value">₹${platformFee.toFixed(2)}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">GST (18%):</span>
+          <span class="detail-value">₹${gst.toFixed(2)}</span>
+        </div>
+        <div class="detail-row" style="border-top: 1px solid #e5e5e5; padding-top: 8px; margin-top: 8px; font-size: 16px;">
+          <span class="detail-label" style="font-weight: 800; color: #3c3c3c;">Total Amount Paid:</span>
+          <span class="detail-value" style="font-weight: 800; color: #7c3aed;">₹${totalAmount.toFixed(2)}</span>
         </div>
       </div>
 
@@ -381,7 +436,7 @@ export async function POST(request) {
 </body>
 </html>`;
 
-        const plainText = `Hello ${session.user.name}, your payment of ₹${finalPrice.toFixed(2)} has been successfully verified! View your invoice at: ${invoiceUrl}`;
+        const plainText = `Hello ${session.user.name}, your payment of ₹${totalAmount.toFixed(2)} (including platform fee & GST) has been successfully verified! View your invoice at: ${invoiceUrl}`;
 
         await sendEmail({
           to: session.user.email,

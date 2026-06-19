@@ -23,6 +23,9 @@ export async function GET(request, { params }) {
         course: {
           select: { title: true, price: true },
         },
+        coupon: {
+          select: { code: true },
+        },
       },
     });
 
@@ -38,7 +41,12 @@ export async function GET(request, { params }) {
     const invoiceId = enrollment.id;
     const invoiceDate = new Date(enrollment.joinedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     const invoiceNum = `US-${invoiceId.substring(0, 8).toUpperCase()}`;
-    const coursePrice = enrollment.course?.price || 0;
+    const originalPrice = enrollment.course?.price || 0;
+    const discountedPrice = enrollment.discountedPrice !== null ? enrollment.discountedPrice : originalPrice;
+    const discountAmount = originalPrice - discountedPrice;
+    const platformFee = Number((discountedPrice * 0.03).toFixed(2));
+    const gst = Number((discountedPrice * 0.18).toFixed(2));
+    const totalPaid = Number((discountedPrice + platformFee + gst).toFixed(2));
 
     const invoiceHtml = `<!DOCTYPE html>
 <html>
@@ -103,15 +111,18 @@ export async function GET(request, { params }) {
             <strong>${enrollment.course?.title || 'Unknown Course'}</strong><br>
             <span style="font-size: 12px; color: #666;">LMS Online Learning Course Masterclass Access</span>
           </td>
-          <td style="text-align: right; font-weight: 700;">₹${coursePrice.toFixed(2)}</td>
+          <td style="text-align: right; font-weight: 700;">₹${originalPrice.toFixed(2)}</td>
         </tr>
       </tbody>
     </table>
     
     <div class="totals">
-      <div>Subtotal: ₹${coursePrice.toFixed(2)}</div>
-      <div>GST (0%): ₹0.00</div>
-      <div class="amount">Total Paid: ₹${coursePrice.toFixed(2)}</div>
+      <div>Base Price: ₹${originalPrice.toFixed(2)}</div>
+      ${enrollment.coupon ? `<div style="color: #7c3aed; font-weight: 700;">Coupon Discount (${enrollment.coupon.code}): -₹${discountAmount.toFixed(2)}</div>` : ''}
+      <div>Subtotal: ₹${discountedPrice.toFixed(2)}</div>
+      <div>Platform Fee (3%): ₹${platformFee.toFixed(2)}</div>
+      <div>GST (18%): ₹${gst.toFixed(2)}</div>
+      <div class="amount">Total Paid: ₹${totalPaid.toFixed(2)}</div>
     </div>
     
     <div class="footer">

@@ -303,6 +303,12 @@ function CheckoutForm() {
     );
   }
 
+  const basePrice = course?.price || 0;
+  const currentPostCouponPrice = discountedPrice;
+  const platformFee = Number((currentPostCouponPrice * 0.03).toFixed(2));
+  const gst = Number((currentPostCouponPrice * 0.18).toFixed(2));
+  const finalTotal = Number((currentPostCouponPrice + platformFee + gst).toFixed(2));
+
   return (
     <div className={styles.container}>
       {/* Left pane: Details */}
@@ -413,18 +419,32 @@ function CheckoutForm() {
         <h3 className={styles.summaryTitle}>Summary</h3>
         
         <div className={styles.summaryRow}>
-          <span>Price:</span>
-          <span>₹{course?.price}</span>
+          <span>Course Price:</span>
+          <span>₹{basePrice.toFixed(2)}</span>
         </div>
         {appliedCoupon && (
-          <div className={styles.summaryRow} style={{ color: 'var(--primary)', fontWeight: '700' }}>
-            <span>Discount ({appliedCoupon.code}):</span>
-            <span>-₹{discountAmount}</span>
-          </div>
+          <>
+            <div className={styles.summaryRow} style={{ color: 'var(--primary)', fontWeight: '700' }}>
+              <span>Coupon Discount ({appliedCoupon.code}):</span>
+              <span>-₹{discountAmount.toFixed(2)}</span>
+            </div>
+            <div className={styles.summaryRow} style={{ borderTop: '1px dashed var(--border-trans)', paddingTop: '8px', marginTop: '8px' }}>
+              <span>Discounted Price:</span>
+              <span>₹{currentPostCouponPrice.toFixed(2)}</span>
+            </div>
+          </>
         )}
-        <div className={styles.summaryTotalRow}>
-          <span>Total:</span>
-          <span className="text-gradient">₹{discountedPrice}</span>
+        <div className={styles.summaryRow}>
+          <span>Platform Fee (3%):</span>
+          <span>₹{platformFee.toFixed(2)}</span>
+        </div>
+        <div className={styles.summaryRow}>
+          <span>GST (18%):</span>
+          <span>₹{gst.toFixed(2)}</span>
+        </div>
+        <div className={styles.summaryTotalRow} style={{ borderTop: '2px solid var(--border-trans)', paddingTop: '12px', marginTop: '12px' }}>
+          <span>Total to Pay:</span>
+          <span className="text-gradient">₹{finalTotal.toFixed(2)}</span>
         </div>
 
         {/* Coupon Section */}
@@ -473,7 +493,7 @@ function CheckoutForm() {
           )}
         </div>
 
-        {discountedPrice === 0 ? (
+        {finalTotal === 0 ? (
           <button 
             onClick={handleFreeEnrollment}
             disabled={paymentLoading}
