@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { createAuditLog } from '@/lib/audit';
 
 async function verifyAdmin() {
   const session = await getServerSession(authOptions);
@@ -88,6 +89,13 @@ export async function POST(request) {
       },
     });
 
+    await createAuditLog({
+      userId: isAdmin.user.id,
+      userEmail: isAdmin.user.email,
+      action: 'COUPON_CREATE',
+      details: { couponId: coupon.id, code: coupon.code, discountType, discountValue: val },
+    });
+
     return NextResponse.json({
       success: true,
       message: 'Coupon created successfully!',
@@ -123,6 +131,13 @@ export async function DELETE(request) {
     if (!coupon) {
       return NextResponse.json({ error: 'Coupon not found.' }, { status: 404 });
     }
+
+    await createAuditLog({
+      userId: isAdmin.user.id,
+      userEmail: isAdmin.user.email,
+      action: 'COUPON_DELETE',
+      details: { couponId, code: coupon.code },
+    });
 
     await prisma.coupon.delete({
       where: { id: couponId },

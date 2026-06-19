@@ -192,3 +192,13 @@ model NewsletterSubscription {
   subscribedAt DateTime @default(now())
 }
 
+model AuditLog {
+  id        String   @id @default(uuid())
+  timestamp DateTime @default(now())
+  userId    String?
+  userEmail String?
+  action    String
+  details   String
+  ipAddress String?
+}
+

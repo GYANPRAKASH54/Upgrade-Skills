@@ -2,6 +2,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
 import bcrypt from 'bcryptjs';
 import { prisma } from './db';
+import { createAuditLog } from './audit';
 
 export const authOptions = {
   providers: [
@@ -30,6 +31,11 @@ export const authOptions = {
         });
 
         if (!user) {
+          await createAuditLog({
+            action: 'LOGIN_FAILURE',
+            details: `Non-existent email: ${credentials.email}`,
+            userEmail: credentials.email,
+          });
           throw new Error('No user found with this email');
         }
 
@@ -37,8 +43,21 @@ export const authOptions = {
         const isValid = bcrypt.compareSync(credentials.password, user.password);
 
         if (!isValid) {
+          await createAuditLog({
+            userId: user.id,
+            userEmail: user.email,
+            action: 'LOGIN_FAILURE',
+            details: 'Incorrect password attempt',
+          });
           throw new Error('Incorrect password');
         }
+
+        await createAuditLog({
+          userId: user.id,
+          userEmail: user.email,
+          action: 'LOGIN_SUCCESS',
+          details: { provider: 'credentials', role: user.role },
+        });
 
         return {
           id: user.id,
@@ -57,6 +76,7 @@ export const authOptions = {
           where: { email: user.email },
         });
 
+        const isNewUser = !dbUser;
         if (!dbUser) {
           // Create new user for google oauth
           const mockPassword = bcrypt.hashSync(Math.random().toString(36).substring(2), 10);
@@ -71,6 +91,13 @@ export const authOptions = {
         }
         user.id = dbUser.id;
         user.role = dbUser.role;
+
+        await createAuditLog({
+          userId: dbUser.id,
+          userEmail: dbUser.email,
+          action: 'LOGIN_SUCCESS',
+          details: { provider: 'google', isNewUser, role: dbUser.role },
+        });
       }
       return true;
     },

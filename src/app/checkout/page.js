@@ -107,7 +107,17 @@ function CheckoutForm() {
       const orderRes = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'create', courseId, couponCode: appliedCoupon?.code }),
+        body: JSON.stringify({ 
+          action: 'create', 
+          courseId, 
+          couponCode: appliedCoupon?.code,
+          billingName,
+          billingPhone,
+          billingAddress,
+          billingCity,
+          billingState,
+          billingZip
+        }),
       });
 
       const orderData = await orderRes.json();

@@ -7,6 +7,8 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { sendEmail } from '@/lib/email';
+import { getBreaker } from '@/lib/circuitBreaker';
+import { createAuditLog } from '@/lib/audit';
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID || '',
@@ -21,7 +23,17 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { action, courseId, couponCode } = body;
+    const { 
+      action, 
+      courseId, 
+      couponCode,
+      billingName,
+      billingPhone,
+      billingAddress,
+      billingCity,
+      billingState,
+      billingZip
+    } = body;
 
     if (!courseId) {
       return NextResponse.json({ error: 'Course ID is required' }, { status: 400 });
@@ -102,9 +114,49 @@ export async function POST(request) {
         amount: amountInPaisa,
         currency: 'INR',
         receipt: `receipt_${session.user.id.substring(0, 8)}_${courseId.substring(0, 8)}`,
+        notes: {
+          courseId,
+          studentId: session.user.id,
+          studentEmail: session.user.email,
+          couponCode: couponCode || '',
+          billingName: billingName || '',
+          billingPhone: billingPhone || '',
+          billingAddress: billingAddress || '',
+          billingCity: billingCity || '',
+          billingState: billingState || '',
+          billingZip: billingZip || '',
+        }
       };
 
-      const order = await razorpay.orders.create(options);
+      const razorpayBreaker = getBreaker('razorpay-orders', {
+        failureThreshold: 3,
+        recoveryTimeout: 30000
+      });
+
+      let order;
+      try {
+        order = await razorpayBreaker.execute(
+          () => razorpay.orders.create(options),
+          async (err) => {
+            await createAuditLog({
+              userId: session.user.id,
+              userEmail: session.user.email,
+              action: 'EXTERNAL_API_FAILURE',
+              details: { service: 'razorpay', error: err.message, action: 'orders.create', courseId },
+            });
+            throw err;
+          }
+        );
+      } catch (err) {
+        return NextResponse.json({ error: 'Payment gateway service is currently unavailable. Please try again later.' }, { status: 503 });
+      }
+
+      await createAuditLog({
+        userId: session.user.id,
+        userEmail: session.user.email,
+        action: 'ORDER_CREATE',
+        details: { orderId: order.id, courseId, amount: totalAmount, couponCode },
+      });
 
       return NextResponse.json({
         success: true,
@@ -303,6 +355,12 @@ export async function POST(request) {
         .digest('hex');
 
       if (generated_signature !== razorpay_signature) {
+        await createAuditLog({
+          userId: session.user.id,
+          userEmail: session.user.email,
+          action: 'PAYMENT_SIGNATURE_INVALID',
+          details: { razorpayOrderId: razorpay_order_id, razorpayPaymentId: razorpay_payment_id },
+        });
         return NextResponse.json({ error: 'Invalid payment signature. Transaction rejected.' }, { status: 400 });
       }
 
@@ -349,6 +407,13 @@ export async function POST(request) {
           couponId: appliedCouponId,
           discountedPrice: finalPrice,
         },
+      });
+
+      await createAuditLog({
+        userId: session.user.id,
+        userEmail: session.user.email,
+        action: 'PAYMENT_VERIFIED',
+        details: { enrollmentId: enrollment.id, razorpayOrderId: razorpay_order_id, razorpayPaymentId: razorpay_payment_id, amountPaid: totalAmount },
       });
 
       // Generate Course Bill Invoice HTML Reference (served dynamically)
