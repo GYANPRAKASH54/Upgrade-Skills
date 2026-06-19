@@ -7,12 +7,36 @@ import styles from './Footer.module.css';
 export default function Footer() {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (email.trim()) {
-      setSubscribed(true);
-      setEmail('');
+    if (!email.trim() || loading) return;
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Failed to subscribe.');
+      } else {
+        setSubscribed(true);
+        setEmail('');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -146,19 +170,27 @@ export default function Footer() {
                 ✓ Thanks for subscribing!
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className={styles.newsletterForm}>
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={styles.newsletterInput}
-                  required
-                />
-                <button type="submit" className="btn-primary" style={{ padding: '10px 16px' }}>
-                  Join
-                </button>
-              </form>
+              <div>
+                <form onSubmit={handleSubmit} className={styles.newsletterForm}>
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={styles.newsletterInput}
+                    disabled={loading}
+                    required
+                  />
+                  <button type="submit" className="btn-primary" style={{ padding: '10px 16px' }} disabled={loading}>
+                    {loading ? '...' : 'Join'}
+                  </button>
+                </form>
+                {error && (
+                  <div style={{ color: '#ff4d4d', fontSize: '12.5px', marginTop: '6px', fontWeight: '700' }}>
+                    {error}
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>

@@ -186,3 +186,9 @@ model Coupon {
   enrollments   Enrollment[]
 }
 
+model NewsletterSubscription {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  subscribedAt DateTime @default(now())
+}
+
